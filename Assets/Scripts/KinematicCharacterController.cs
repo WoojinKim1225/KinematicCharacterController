@@ -12,7 +12,7 @@ public class Float
     private float _beforeValue;
     private float _initialValue;
 
-    public float Value { get => _value; set => this._value = value; }
+    public float Value { get => _value; set => _value = value; }
 
     public bool IsChanged => _isChanged;
 
@@ -67,6 +67,7 @@ public class KinematicCharacterController : MonoBehaviour
     [SerializeField] private float _capsuleRadius = 0.5f;
     public float CapusleRadius => _capsuleRadius;
     private Float _height, _radius;
+    public float CapsuleHeight => _height.Value;
 
     [SerializeField] private float _jumpSpeed = 10f;
     [SerializeField] private float _jumpMaxHeight = 2f;
@@ -75,7 +76,6 @@ public class KinematicCharacterController : MonoBehaviour
     private Float _jumpS, _jumpMaxH;
 
     [SerializeField] private float _sprintSpeedMultiplier = 2f;
-    [Range(0f, 89.99f)]
     [SerializeField] private float _maxSlopeAngle = 55f;
     public float MaxSlopeAngle => _maxSlopeAngle;
 
@@ -103,6 +103,8 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 _nextPositionWS;
 
     [SerializeField] private bool _isGrounded = false;
+    private bool _isGroudedBefore;
+    
     [SerializeField] private Vector3 _groundNormal = Vector3.up;
     [SerializeField] private Vector3 _playerUp = Vector3.up;
 
@@ -128,6 +130,8 @@ public class KinematicCharacterController : MonoBehaviour
         _jumpMaxHeight = _jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y);
 
         _characterCollider.bounds.Expand(-2 * _skinWidth);
+        _characterCollider.height -= 2 * _skinWidth;
+        _characterCollider.radius -= _skinWidth;
     }
 
     void OnEnable()
@@ -223,14 +227,15 @@ public class KinematicCharacterController : MonoBehaviour
 
     Vector3 CollideAndSlide(Vector3 vel, Vector3 pos, int depth, bool gravityPass, Vector3 velInit = default)
     {
-        if (depth >= _maxBounces)
-        {
-            return Vector3.zero;
-        }
+        if (depth >= _maxBounces) return Vector3.zero;
+        
         if (depth == 0)
         {
             velInit = vel;
-            if (!gravityPass) _isGrounded = false;
+            if (!gravityPass) {
+                _isGroudedBefore = _isGrounded;
+                _isGrounded = false;
+            }
         }
 
         float dist = vel.magnitude + _skinWidth;
@@ -285,7 +290,7 @@ public class KinematicCharacterController : MonoBehaviour
                     leftover = projectAndScale(leftover, hit.normal) * scale;
                 }
 
-                if (!gravityPass) {
+                if (_isGroudedBefore && !gravityPass) {
                     Vector3 stepPointA = new Vector3(pos.x, pos.y - _height.Value * 0.5f + _stepHeight, pos.z);
                     Vector3 stepDirA = -new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
                     float stepSizeA = _radius.Value + vel.magnitude;
@@ -323,13 +328,13 @@ public class KinematicCharacterController : MonoBehaviour
 
         if (_height.IsChanged)
         {
-            _characterCollider.height = _height.Value;
+            _characterCollider.height = _height.Value - _skinWidth * 2f;
             _characterCollider.center = _height.Value * 0.5f * Vector3.up;
         }
 
         if (_radius.IsChanged)
         {
-            _characterCollider.radius = _radius.Value;
+            _characterCollider.radius = _radius.Value- _skinWidth;
         }
 
         if (_jumpS.IsChanged)
