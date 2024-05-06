@@ -14,6 +14,6 @@ public class GroundMover : MonoBehaviour
     }
 
     void FixedUpdate() {
-        rb.MovePosition(initialPosition + Mathf.Sin(Time.fixedTime) * 3f * Vector3.forward);
+        rb.MovePosition(initialPosition + Mathf.Abs(Time.fixedTime % 6f - 3f) * 3f * Vector3.forward);
     }
 }

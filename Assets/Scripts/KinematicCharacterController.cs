@@ -98,16 +98,18 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 _jumpVelocityWS;
     private float _playerHeightWS;
 
-    private Vector3 _hitPointVelocity;
-    private Vector3 _horizontalDisplacement, _verticalDisplacement;
+    private Vector3 _hitPointDisplacement;
+    private Vector3 _horizontalDisplacement, _verticalDisplacement, _stepDisplacement;
     private Vector3 _nextPositionWS;
 
-    //[Header("Ground Properties")]
     [SerializeField] private bool _isGrounded = false;
     [SerializeField] private Vector3 _groundNormal = Vector3.up;
     [SerializeField] private Vector3 _playerUp = Vector3.up;
 
     private RaycastHit hit;
+    [SerializeField] private LayerMask _whatIsGround;
+
+    [SerializeField] private float _stepHeight = 0.3f;
     #endregion
 
     void Awake() {
@@ -211,11 +213,11 @@ public class KinematicCharacterController : MonoBehaviour
 
     void HandleCollisionsAndMovement()
     {
-        _hitPointVelocity = Vector3.zero;
+        _hitPointDisplacement = Vector3.zero;
         _horizontalDisplacement = CollideAndSlide(_moveVelocityWS * Time.fixedDeltaTime, _rb.position + _height.Value * _playerUp * 0.5f, 0, false);
         _verticalDisplacement = CollideAndSlide(_jumpVelocityWS * Time.fixedDeltaTime, _rb.position + _height.Value * _playerUp * 0.5f + _horizontalDisplacement, 0, true);
 
-        _nextPositionWS = _horizontalDisplacement + _verticalDisplacement + _hitPointVelocity * Time.fixedDeltaTime + _rb.position;
+        _nextPositionWS = _horizontalDisplacement + _verticalDisplacement + _hitPointDisplacement + _rb.position;
         _rb.MovePosition(_nextPositionWS);
     }
 
@@ -233,10 +235,17 @@ public class KinematicCharacterController : MonoBehaviour
 
         float dist = vel.magnitude + _skinWidth;
 
+        /*
+        Debug.DrawRay(pos - _playerUp * (_height.Value * 0.5f - 0.1f), vel.normalized * _characterCollider.bounds.extents.x * 2f, Color.white);
+        if (!gravityPass && Physics.Raycast(pos - _playerUp * (_height.Value * 0.5f - 0.1f), vel.normalized, out stepHit, _characterCollider.bounds.extents.x, _whatIsGround)) {
+            Debug.Log("step!");
+        }
+        */
 
-
-        if (Physics.CapsuleCast(pos + (_height.Value * 0.5f - _radius.Value) * _playerUp, pos - (_height.Value * 0.5f - _radius.Value) * _playerUp, _characterCollider.bounds.extents.x, vel.normalized, out hit, dist))
+        if (Physics.CapsuleCast(pos + (_height.Value * 0.5f - _radius.Value) * _playerUp, pos - (_height.Value * 0.5f - _radius.Value) * _playerUp, _characterCollider.bounds.extents.x, vel.normalized, out hit, dist, _whatIsGround))
         {
+            Debug.DrawRay(hit.point, hit.normal, gravityPass? Color.cyan : Color.magenta);
+
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
             Vector3 leftover = vel - snapToSurface;
             float angle = Vector3.Angle(_playerUp, hit.normal);
@@ -246,36 +255,51 @@ public class KinematicCharacterController : MonoBehaviour
                 snapToSurface = Vector3.zero;
             }
 
-            if (angle <= _maxSlopeAngle)
+            if (angle <= _maxSlopeAngle)  // if flat ground or slope...
             {
                 if (gravityPass)
                 {
                     _isGrounded = true;
                     _groundNormal = hit.normal;
-                    _hitPointVelocity = (hit.collider.attachedRigidbody == null) ? Vector3.zero : hit.collider.attachedRigidbody.GetPointVelocity(hit.point);
-
+                    
                     return snapToSurface;
                 }
 
                 leftover = projectAndScale(leftover, hit.normal);
             }
-            else if (angle >= _minCeilingAngle)
+            else if (angle >= _minCeilingAngle) // if ceiling...
             {
                 _jumpVelocityWS = Vector3.zero;
                 return snapToSurface;
             }
-            else
+            else // if wall...
             {
                 float scale = 1 - Vector3.Dot(new Vector3(hit.normal.x, 0, hit.normal.z).normalized, -new Vector3(velInit.x, 0, velInit.z).normalized);
 
                 if (_isGrounded && !gravityPass)
                 {
-                    leftover = projectAndScale(new Vector3(leftover.x, 0, leftover.z), -new Vector3(hit.normal.x, 0, hit.normal.z)).normalized;
-                    leftover *= scale;
+                    leftover = projectAndScale(new Vector3(leftover.x, 0, leftover.z), -new Vector3(hit.normal.x, 0, hit.normal.z)).normalized * scale;
                 }
                 else
                 {
                     leftover = projectAndScale(leftover, hit.normal) * scale;
+                }
+
+                if (!gravityPass) {
+                    Vector3 stepPointA = new Vector3(pos.x, pos.y - _height.Value * 0.5f + _stepHeight, pos.z);
+                    Vector3 stepDirA = -new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
+                    float stepSizeA = _radius.Value + vel.magnitude;
+
+                    Debug.DrawRay(stepPointA, stepDirA * stepSizeA, Color.red);
+                    if (!Physics.Raycast(stepPointA, stepDirA, stepSizeA, _whatIsGround)) {
+                        Debug.DrawRay(stepPointA + stepDirA * stepSizeA + _playerUp, -_playerUp * 2f, Color.red);
+                        if (Physics.Raycast(stepPointA + stepDirA * stepSizeA + _playerUp, -_playerUp, out RaycastHit stepHit, 2f, _whatIsGround)) {
+                            Vector3 a = new Vector3(hit.normal.x, 0, hit.normal.z).normalized * (_radius.Value * new Vector3(hit.normal.x, 0, hit.normal.z).magnitude - vel.magnitude);
+                            float b = Mathf.Sqrt(_radius.Value * _radius.Value - Vector3.Dot(a, a));
+                            leftover = vel - snapToSurface;
+                            leftover.y = stepHit.point.y + b - _radius.Value + _height.Value * 0.5f - pos.y;
+                        }
+                    }
                 }
             }
 
