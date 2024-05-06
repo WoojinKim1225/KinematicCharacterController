@@ -5,12 +5,13 @@ using UnityEngine.InputSystem;
 using ReferenceManager;
 
 // Stateful Class for Float
+[System.Serializable]
 public class Float
 {
-    private float _value;
-    private bool _isChanged;
-    private float _beforeValue;
-    private float _initialValue;
+    [SerializeField] private float _value;
+    [SerializeField] private bool _isChanged;
+    [SerializeField] private float _beforeValue;
+    [SerializeField] private float _initialValue;
 
     public float Value { get => _value; set => _value = value; }
 
@@ -66,14 +67,14 @@ public class KinematicCharacterController : MonoBehaviour
 
     [SerializeField] private float _capsuleRadius = 0.5f;
     public float CapusleRadius => _capsuleRadius;
-    private Float _height, _radius;
+    [SerializeField] private Float _height, _radius;
     public float CapsuleHeight => _height.Value;
 
     [SerializeField] private float _jumpSpeed = 10f;
     [SerializeField] private float _jumpMaxHeight = 2f;
     public float JumpMaxHeight => _jumpMaxHeight;
 
-    private Float _jumpS, _jumpMaxH;
+    [SerializeField] private Float _jumpS, _jumpMaxH;
 
     [SerializeField] private float _sprintSpeedMultiplier = 2f;
     [SerializeField] private float _maxSlopeAngle = 55f;
@@ -130,8 +131,8 @@ public class KinematicCharacterController : MonoBehaviour
         _jumpMaxHeight = _jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y);
 
         _characterCollider.bounds.Expand(-2 * _skinWidth);
-        _characterCollider.height -= 2 * _skinWidth;
-        _characterCollider.radius -= _skinWidth;
+        _characterCollider.height = _height.Value - 2 * _skinWidth;
+        _characterCollider.radius = _radius.Value - _skinWidth;
     }
 
     void OnEnable()
@@ -240,13 +241,6 @@ public class KinematicCharacterController : MonoBehaviour
 
         float dist = vel.magnitude + _skinWidth;
 
-        /*
-        Debug.DrawRay(pos - _playerUp * (_height.Value * 0.5f - 0.1f), vel.normalized * _characterCollider.bounds.extents.x * 2f, Color.white);
-        if (!gravityPass && Physics.Raycast(pos - _playerUp * (_height.Value * 0.5f - 0.1f), vel.normalized, out stepHit, _characterCollider.bounds.extents.x, _whatIsGround)) {
-            Debug.Log("step!");
-        }
-        */
-
         if (Physics.CapsuleCast(pos + (_height.Value * 0.5f - _radius.Value) * _playerUp, pos - (_height.Value * 0.5f - _radius.Value) * _playerUp, _characterCollider.bounds.extents.x, vel.normalized, out hit, dist, _whatIsGround))
         {
             Debug.DrawRay(hit.point, hit.normal, gravityPass? Color.cyan : Color.magenta);
@@ -255,12 +249,11 @@ public class KinematicCharacterController : MonoBehaviour
             Vector3 leftover = vel - snapToSurface;
             float angle = Vector3.Angle(_playerUp, hit.normal);
 
-            if (snapToSurface.magnitude <= _skinWidth)
-            {
-                snapToSurface = Vector3.zero;
-            }
+            // the terrain is inside the collider
+            if (snapToSurface.magnitude <= _skinWidth) snapToSurface = Vector3.zero;
 
-            if (angle <= _maxSlopeAngle)  // if flat ground or slope...
+            // if flat ground or slope
+            if (angle <= _maxSlopeAngle)
             {
                 if (gravityPass)
                 {
@@ -272,14 +265,17 @@ public class KinematicCharacterController : MonoBehaviour
 
                 leftover = projectAndScale(leftover, hit.normal);
             }
-            else if (angle >= _minCeilingAngle) // if ceiling...
+            // if ceiling, cancel upwards velocity
+            else if (angle >= _minCeilingAngle) 
             {
                 _jumpVelocityWS = Vector3.zero;
                 return snapToSurface;
             }
-            else // if wall...
+            // if wall
+            else 
             {
-                float scale = 1 - Vector3.Dot(new Vector3(hit.normal.x, 0, hit.normal.z).normalized, -new Vector3(velInit.x, 0, velInit.z).normalized);
+                Vector3 flatHit = new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
+                float scale = 1 - Vector3.Dot(flatHit, -new Vector3(velInit.x, 0, velInit.z).normalized);
 
                 if (_isGrounded && !gravityPass)
                 {
@@ -292,14 +288,12 @@ public class KinematicCharacterController : MonoBehaviour
 
                 if (_isGroudedBefore && !gravityPass) {
                     Vector3 stepPointA = new Vector3(pos.x, pos.y - _height.Value * 0.5f + _stepHeight, pos.z);
-                    Vector3 stepDirA = -new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
+                    Vector3 stepDirA = -flatHit;
                     float stepSizeA = _radius.Value + vel.magnitude;
 
-                    Debug.DrawRay(stepPointA, stepDirA * stepSizeA, Color.red);
                     if (!Physics.Raycast(stepPointA, stepDirA, stepSizeA, _whatIsGround)) {
-                        Debug.DrawRay(stepPointA + stepDirA * stepSizeA + _playerUp, -_playerUp * 2f, Color.red);
                         if (Physics.Raycast(stepPointA + stepDirA * stepSizeA + _playerUp, -_playerUp, out RaycastHit stepHit, 2f, _whatIsGround)) {
-                            Vector3 a = new Vector3(hit.normal.x, 0, hit.normal.z).normalized * (_radius.Value * new Vector3(hit.normal.x, 0, hit.normal.z).magnitude - vel.magnitude);
+                            Vector3 a = flatHit * (_radius.Value * new Vector3(hit.normal.x, 0, hit.normal.z).magnitude - vel.magnitude);
                             float b = Mathf.Sqrt(_radius.Value * _radius.Value - Vector3.Dot(a, a));
                             leftover = vel - snapToSurface;
                             leftover.y = stepHit.point.y + b - _radius.Value + _height.Value * 0.5f - pos.y;
@@ -315,8 +309,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     Vector3 projectAndScale(Vector3 a, Vector3 n)
     {
-        float mag = a.magnitude;
-        return Vector3.ProjectOnPlane(a, n).normalized * mag;
+        return Vector3.ClampMagnitude(Vector3.ProjectOnPlane(a, n), a.magnitude);
     }
 
     void UpdateProperties()
@@ -334,7 +327,7 @@ public class KinematicCharacterController : MonoBehaviour
 
         if (_radius.IsChanged)
         {
-            _characterCollider.radius = _radius.Value- _skinWidth;
+            _characterCollider.radius = _radius.Value - _skinWidth;
         }
 
         if (_jumpS.IsChanged)
