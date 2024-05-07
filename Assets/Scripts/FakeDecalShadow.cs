@@ -9,7 +9,7 @@ public class FakeDecalShadow : MonoBehaviour
 
     void Update()
     {
-        if (Physics.Raycast(characterController.transform.position, Vector3.down, out RaycastHit hit, 100f, whatIsGround)) {
+        if (Physics.Raycast(characterController.transform.position + characterController.transform.up, Vector3.down, out RaycastHit hit, 100f, whatIsGround)) {
             transform.position = new Vector3(transform.position.x, hit.point.y, transform.position.z);
         }
     }

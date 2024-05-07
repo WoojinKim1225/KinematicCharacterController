@@ -210,7 +210,8 @@ public class KinematicCharacterController : MonoBehaviour
 
     void CalculateWorldSpaceVariables()
     {
-        _moveVelocityWS = Quaternion.FromToRotation(_playerUp, _groundNormal) * _moveVelocityTS;
+        //_moveVelocityWS = Quaternion.FromToRotation(_playerUp, _groundNormal) * _moveVelocityTS;
+        _moveVelocityWS = (_moveVelocityTS - Vector3.Dot(_groundNormal, _moveVelocityTS) / Vector3.Dot(_groundNormal, _playerUp) * _playerUp).normalized * _moveVelocityTS.magnitude;
         if (!_isGrounded) _jumpVelocityWS += _gravity * Time.fixedDeltaTime;
         else _jumpVelocityWS = _jumpVelocityOS;
         _playerHeightWS = _playerHeightOS * transform.localScale.y;
@@ -303,6 +304,8 @@ public class KinematicCharacterController : MonoBehaviour
             }
 
             return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, gravityPass, velInit);
+        } else if (gravityPass && _isGroudedBefore && _jumpVelocityIS == 0) {
+            return CollideAndSlide(vel - _playerUp * 0.2f, pos, depth + 1, true, velInit);
         }
         return vel;
     }
