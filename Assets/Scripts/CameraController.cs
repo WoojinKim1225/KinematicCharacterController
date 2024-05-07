@@ -7,12 +7,14 @@ using ReferenceManager;
 public class CameraController : MonoBehaviour
 {
     [SerializeField] private InputActionReference _cameraRotateReference;
-    [SerializeField] private KinematicCharacterController characterController;
+    [SerializeField] private KinematicCharacterController kcc;
     [SerializeField] private Vector3 targetOffset;
     [SerializeField] private Vector3 cameraOffset;
     private Vector2 _cameraVelocityIS;
     private Vector2 _cameraRotationOS;
     private Quaternion _cameraRotationWS;
+    [SerializeField] private LayerMask _whatIsGround;
+    private float offset;
 
     void OnEnable()
     {
@@ -28,14 +30,29 @@ public class CameraController : MonoBehaviour
         _cameraVelocityIS = context.ReadValue<Vector2>();
     }
 
+    /// <summary>
+    /// This function is called every fixed framerate frame, if the MonoBehaviour is enabled.
+    /// </summary>
+    void FixedUpdate()
+    {
+        Debug.DrawRay(kcc.transform.TransformPoint(targetOffset), -transform.forward * (-cameraOffset.z + 0.2f), Color.blue);
+        if (Physics.Raycast(kcc.transform.TransformPoint(targetOffset), -transform.forward, out RaycastHit hit, -cameraOffset.z + 0.2f, _whatIsGround)) {
+            offset =  -hit.distance + 0.2f;
+        } else {
+            offset = cameraOffset.z;
+        }
+    }
+
     void LateUpdate()
     {
-        _cameraRotationOS += _cameraVelocityIS * Time.deltaTime * Mathf.Rad2Deg * 0.2f;
+        _cameraRotationOS += _cameraVelocityIS * Time.deltaTime * Mathf.Rad2Deg * 0.5f;
         _cameraRotationOS.y = Mathf.Clamp(_cameraRotationOS.y, -89.9f, 89.9f);
         _cameraRotationOS.x %= 360f;
         _cameraRotationWS = Quaternion.Euler(-_cameraRotationOS.y, _cameraRotationOS.x, 0);
-        transform.position = characterController.transform.TransformPoint(targetOffset) + _cameraRotationWS * cameraOffset;
+        
+
+        transform.position = kcc.transform.TransformPoint(targetOffset) + _cameraRotationWS * new Vector3(cameraOffset.x, cameraOffset.y, offset);
         transform.rotation = _cameraRotationWS;
-        characterController.SetViewDirection(transform.forward);
+        kcc.SetViewDirection(transform.forward);
     }
 }

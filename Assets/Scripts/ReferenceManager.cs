@@ -5,7 +5,7 @@ namespace ReferenceManager // Assuming your ReferenceManager class is in this na
 {
     public static class ReferenceManagerExtensions
     {
-        public static void EnableReference(InputActionReference reference, System.Action<InputAction.CallbackContext> actionHandler, uint handlerAddParams = 7)
+        public static void EnableReference(InputActionReference reference, System.Action<InputAction.CallbackContext> actionHandler, int handlerAddParams = 7)
         {
             if (!reference.asset.enabled) reference.asset.Enable();
             if (((handlerAddParams >> 0) & 1) == 1) reference.action.started += actionHandler;
