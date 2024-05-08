@@ -207,8 +207,10 @@ MonoBehaviour:
   _whatIsGround:
     serializedVersion: 2
     m_Bits: 1
-  _stepHeight: 0.4
-  _isUpStep: 0
+  _maxStepUpHeight: 0.3
+  _maxStepDownHeight: -0.3
+  _isUpStepEnabled: 0
+  _isDownStepEnabled: 0
 --- !u!1 &6604793984036076814
 GameObject:
   m_ObjectHideFlags: 0
@@ -264,7 +266,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0}
-  m_Size: {x: 2, y: 2, z: 2}
+  m_Size: {x: 1, y: 1, z: 1}
   m_FadeFactor: 1
 --- !u!114 &7836224370276162793
 MonoBehaviour:
