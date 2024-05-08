@@ -68,9 +68,27 @@ public class KinematicCharacterControllerEditor : Editor
         "    Gravity",
         "The acceleration in world space that changes the velocity of the character. \nIt is recommended to set this value to 20 or higher in the downward direction. \n\n캐릭터의 속도를 변경하는 항상 적용되는 가속도입니다. \n이 값은 아래 방향으로 20 이상으로 설정하는 것이 권장됩니다.");
 
+    SerializedProperty speedControlMode;
+    GUIContent speedControlModeContent = new GUIContent(
+        "    Speed Control Mode",
+        "The interpolation of the player moving. \n\n캐릭터의 이동속도 증가 모드입니다."
+    );
+
+    SerializedProperty moveAcceleration;
+    GUIContent moveAccelerationContent = new GUIContent(
+        "    Move Acceleration",
+        "The acceleration of the player moving. \n\n캐릭터의 이동 가속도입니다. 플레이어의 속도는 이동속도에 다다를 때 까지 증가합니다."
+    );
+
+    SerializedProperty moveDamp;
+    GUIContent moveDampContent = new GUIContent(
+        "    Move Damp",
+        "The damp value of the player moving. \n\n캐릭터의 이동 가속도입니다. 플레이어의 속도는 이동속도에 점근합니다."
+    );
+
     SerializedProperty moveSpeed;
     GUIContent moveSpeedContent = new GUIContent(
-        "    MoveSpeed",
+        "    Move Speed",
         "The speed of the player moves in world space. \n\n캐릭터의 이동속도입니다."
     );
 
@@ -129,6 +147,9 @@ public class KinematicCharacterControllerEditor : Editor
 
         gravity = serializedObject.FindProperty("_gravity");
 
+        speedControlMode = serializedObject.FindProperty("_speedControlMode");
+        moveAcceleration = serializedObject.FindProperty("_moveAcceleration");
+        moveDamp = serializedObject.FindProperty("_moveDamp");
         moveSpeed = serializedObject.FindProperty("_moveSpeed");
         sprintSpeedMultiplier = serializedObject.FindProperty("_sprintSpeedMultiplier");
 
@@ -191,7 +212,15 @@ public class KinematicCharacterControllerEditor : Editor
             EditorGUILayout.PropertyField(viewDirection, viewDirectionContent, true);
 
             EditorGUILayout.LabelField("Horizontal Movement");
+            EditorGUILayout.PropertyField(speedControlMode, speedControlModeContent, true);
             EditorGUILayout.PropertyField(moveSpeed, moveSpeedContent, true);
+            if (speedControlMode.enumValueIndex == 1) {
+                EditorGUILayout.PropertyField(moveAcceleration, moveAccelerationContent, true);
+            }
+            if (speedControlMode.enumValueIndex == 2) {
+                EditorGUILayout.PropertyField(moveDamp, moveDampContent, true);
+            }
+
             EditorGUILayout.PropertyField(sprintSpeedMultiplier, sprintSpeedMultiplierContent, true);
 
             EditorGUILayout.LabelField("Vertical Movement");
@@ -248,7 +277,14 @@ public class KinematicCharacterControllerEditor : Editor
         Handles.DrawLine(center + Vector3.right * 4f * magnify, center + Vector3.right * 4f * magnify + (Vector3.right * Mathf.Cos(controller.MaxSlopeAngle * Mathf.Deg2Rad) - Vector3.up * Mathf.Sin(controller.MaxSlopeAngle * Mathf.Deg2Rad)) * 2f * magnify);
         Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.JumpMaxHeight) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.JumpMaxHeight) * magnify, 1f);
         DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.JumpMaxHeight) * magnify);
+
+
         DrawArrow(center + Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f + Vector3.up * 10f, center + Vector3.up * 10f, false, true);
+
+        if (controller.SpeedControlMode == KinematicCharacterController.ESpeedControlMode.Linear) {
+            Vector3 p = Vector3.Lerp(Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, Vector3.zero, Time.fixedUnscaledTime % 2f);
+            Handles.DrawLine(center + Vector3.up * 5f + p, center + Vector3.up * 15f + p);
+        }
         return h;
     }
 

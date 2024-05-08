@@ -199,7 +199,7 @@ MonoBehaviour:
     _beforeValue: 0
     _initialValue: 0
   _sprintSpeedMultiplier: 2
-  _maxSlopeAngle: 30
+  _maxSlopeAngle: 50
   _minCeilingAngle: 175
   _isGrounded: 0
   _groundNormal: {x: 0, y: 1, z: 0}
@@ -207,10 +207,10 @@ MonoBehaviour:
   _whatIsGround:
     serializedVersion: 2
     m_Bits: 1
-  _maxStepUpHeight: 0.3
-  _maxStepDownHeight: -0.3
-  _isUpStepEnabled: 0
-  _isDownStepEnabled: 0
+  _maxStepUpHeight: 0.5
+  _maxStepDownHeight: 0.5
+  _isUpStepEnabled: 1
+  _isDownStepEnabled: 1
 --- !u!1 &6604793984036076814
 GameObject:
   m_ObjectHideFlags: 0
