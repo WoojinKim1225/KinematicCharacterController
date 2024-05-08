@@ -113,7 +113,7 @@ public class KinematicCharacterController : MonoBehaviour
     [SerializeField] private LayerMask _whatIsGround;
 
     [SerializeField] private float _stepHeight = 0.3f;
-    private bool _isUpStep;
+    [SerializeField] private bool _isUpStep;
     #endregion
 
     void Awake() {
@@ -242,8 +242,9 @@ public class KinematicCharacterController : MonoBehaviour
         }
 
         float dist = vel.magnitude + _skinWidth;
+        Vector3 capsulePoint = (_height.Value * 0.5f - _radius.Value) * _playerUp;
 
-        if (Physics.CapsuleCast(pos + (_height.Value * 0.5f - _radius.Value) * _playerUp, pos - (_height.Value * 0.5f - _radius.Value) * _playerUp, _characterCollider.bounds.extents.x, vel.normalized, out hit, dist, _whatIsGround))
+        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _characterCollider.bounds.extents.x, vel.normalized, out hit, dist, _whatIsGround))
         {
             Debug.DrawRay(hit.point, hit.normal, gravityPass? Color.cyan : Color.magenta);
 
@@ -278,6 +279,7 @@ public class KinematicCharacterController : MonoBehaviour
             // if wall
             else 
             {
+                if (_isUpStep) return snapToSurface;
                 Vector3 flatHit = new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
                 float scale = 1 - Vector3.Dot(flatHit, -new Vector3(velInit.x, 0, velInit.z).normalized);
 
@@ -291,28 +293,33 @@ public class KinematicCharacterController : MonoBehaviour
                 }
 
                 if (_isGroudedBefore && !gravityPass) {
-                    Vector3 stepPointA = new Vector3(pos.x, pos.y - _height.Value * 0.5f + _stepHeight, pos.z);
-                    Vector3 stepDirA = -flatHit;
-                    float stepSizeA = _radius.Value + vel.magnitude;
+                    float hitHeight = Vector3.Dot(hit.point - (pos - _height.Value * 0.5f * _characterCollider.transform.up), _playerUp);
+                    Physics.Raycast(hit.point + 0.1f * Vector3.up - flatHit * 0.01f, Vector3.down, out RaycastHit h, 0.1f + _stepHeight, _whatIsGround);
+                    Debug.DrawRay(hit.point + 0.1f * Vector3.up - flatHit * 0.01f, Vector3.down * (0.1f + _stepHeight), Color.green, 1f);
 
-                    Debug.DrawRay(stepPointA, stepDirA * stepSizeA, Color.red);
-                    if (!Physics.Raycast(stepPointA, stepDirA, stepSizeA, _whatIsGround)) {
-                        Debug.DrawRay(stepPointA + stepDirA * stepSizeA + _playerUp, -_playerUp * 2f, Color.blue);
-                        if (Physics.Raycast(stepPointA + stepDirA * stepSizeA + _playerUp, -_playerUp, out RaycastHit stepHit, 2f, _whatIsGround)) {
-                            leftover = vel - snapToSurface;
-                            leftover.y = _stepHeight;
-                            _isUpStep = true;
-                        }
+                    if (hitHeight <= _stepHeight && Vector3.Angle(h.normal, Vector3.up) <= MaxSlopeAngle) {
+                        Debug.Log(Vector3.Dot(hit.point - (pos - _height.Value * 0.5f * _characterCollider.transform.up), _playerUp));
+                        _isUpStep = true;
+                        leftover += (hitHeight) * Vector3.up;
                     }
+
                 }
             }
-
             return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, gravityPass, velInit);
         } 
+        
         else if (gravityPass && _isGroudedBefore && _jumpVelocityIS == 0) 
         {
-            return CollideAndSlide(vel - _playerUp * _stepHeight, pos, depth + 1, true, velInit);
+            return CollideAndSlide(_playerUp * (_stepHeight + _gravity.y * Time.fixedDeltaTime * 0.5f), pos, depth + 1, true, velInit);
+            /*
+            if (Physics.Raycast(pos, -Vector3.up, _stepHeight + 0.1f, _whatIsGround)) {
+                _isUpStep = true;
+                return CollideAndSlide(vel - _playerUp * (_stepHeight + 0.1f), pos, depth + 1, true, velInit);
+            }
+            */
+            
         }
+        
         return vel;
     }
 
