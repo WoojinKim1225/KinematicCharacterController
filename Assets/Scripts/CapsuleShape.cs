@@ -21,9 +21,9 @@ public class CapsuleShape : MonoBehaviour
     /// </summary>
     void Update()
     {
-        Bone.localScale = kcc.CapusleRadius * 200f * Vector3.one;
-        Bone.localPosition = (kcc.IdleHeight * 0.5f - kcc.CapusleRadius) * Vector3.down;
-        Bone001.localScale = kcc.CapusleRadius * 200f * Vector3.one;
-        Bone001.localPosition = (-kcc.IdleHeight * 0.5f + kcc.CapsuleHeight - kcc.CapusleRadius) * Vector3.up;
+        Bone.localScale = kcc.CapsuleRadius * 200f * Vector3.one;
+        Bone.localPosition = (kcc.IdleHeight * 0.5f - kcc.CapsuleRadius) * Vector3.down;
+        Bone001.localScale = kcc.CapsuleRadius * 200f * Vector3.one;
+        Bone001.localPosition = (-kcc.IdleHeight * 0.5f + kcc.CapsuleHeight - kcc.CapsuleRadius) * Vector3.up;
     }
 }

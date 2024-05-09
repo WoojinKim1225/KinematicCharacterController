@@ -272,9 +272,9 @@ public class KinematicCharacterControllerEditor : Editor
         if (showColliders)
         {
             EditorGUILayout.LabelField("Colliders");
-            EditorGUILayout.PropertyField(capsuleRadius, capsuleRadiusContent, true);
-            EditorGUILayout.PropertyField(capsuleHeight, capsuleHeightContent, true);
-            EditorGUILayout.PropertyField(crouchedCapsuleHeight, crouchedCapsuleHeightContent, true);
+            EditorGUILayout.DelayedFloatField(capsuleRadius, capsuleRadiusContent);
+            EditorGUILayout.DelayedFloatField(capsuleHeight, capsuleHeightContent);
+            EditorGUILayout.DelayedFloatField(crouchedCapsuleHeight, crouchedCapsuleHeightContent);
             EditorGUILayout.LabelField("Collisions");
             EditorGUILayout.PropertyField(skinWidth, skinWidthContent, true);
             EditorGUILayout.PropertyField(maxBounce, maxBounceContent, true);
@@ -349,7 +349,7 @@ public class KinematicCharacterControllerEditor : Editor
 
         // Calculate the position and size of the capsule
         Vector3 center = new Vector3(200f, h + 50f, 0f);
-        float radius = controller.CapusleRadius * magnify;
+        float radius = controller.CapsuleRadius * magnify;
         float height = controller.IdleHeight * magnify;
         float crouchHeight = controller.CrouchHeight * magnify;
 
@@ -359,13 +359,12 @@ public class KinematicCharacterControllerEditor : Editor
         Handles.color = Color.gray;
         Handles.DrawWireArc(center - Vector3.up * (crouchHeight - radius), Vector3.forward, Vector3.left, 180, radius);
 
-        // Draw terrain usig Handles
+        // Draw terrain using Handles
         Handles.color = Color.white;
         Handles.DrawLine(center + Vector3.left * 2f * magnify, center + Vector3.right * 4f * magnify);
         Handles.DrawLine(center + Vector3.right * 4f * magnify, center + Vector3.right * 4f * magnify + (Vector3.right * Mathf.Cos(controller.MaxSlopeAngle * Mathf.Deg2Rad) - Vector3.up * Mathf.Sin(controller.MaxSlopeAngle * Mathf.Deg2Rad)) * 2f * magnify);
         Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.JumpMaxHeight) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.JumpMaxHeight) * magnify, 1f);
         DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.JumpMaxHeight) * magnify);
-
 
         DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, false, true);
 

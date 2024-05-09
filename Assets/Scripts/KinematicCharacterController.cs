@@ -1,9 +1,6 @@
-using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
-using System.Collections.Generic;
 
 // Stateful Class for Float
 [System.Serializable]
@@ -77,7 +74,7 @@ public class KinematicCharacterController : MonoBehaviour
     public float CrouchHeight => _crouchHeight;
 
     [SerializeField] private float _capsuleRadius = 0.5f;
-    public float CapusleRadius => _capsuleRadius;
+    public float CapsuleRadius => _capsuleRadius;
     [SerializeField] private Float _height, _radius;
     public float CapsuleHeight => _height.Value;
 
@@ -118,7 +115,7 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 _nextPositionWS;
 
     [SerializeField] private bool _isGrounded = false;
-    private bool _isGroudedBefore;
+    private bool _isGroundedBefore;
     
     [SerializeField] private Vector3 _groundNormal = Vector3.up;
     [SerializeField] private Vector3 _playerUp = Vector3.up;
@@ -214,7 +211,7 @@ public class KinematicCharacterController : MonoBehaviour
         HandleCollisionsAndMovement();
     }
 
-    #region Priate Methods
+    #region Private Methods
     private void GetDirectionsFromView()
     {
         _forward = Vector3.ProjectOnPlane(_viewDirection, _playerUp).normalized;
@@ -296,7 +293,7 @@ public class KinematicCharacterController : MonoBehaviour
         {
             velInit = vel;
             if (!gravityPass) {
-                _isGroudedBefore = _isGrounded;
+                _isGroundedBefore = _isGrounded;
                 _isGrounded = false;
             }
         }
@@ -353,18 +350,18 @@ public class KinematicCharacterController : MonoBehaviour
                     leftover = projectAndScale(leftover, hit.normal) * scale;
                 }
 
-                if (_isUpStepEnabled && _isGroudedBefore && !gravityPass) {
+                if (_isUpStepEnabled && _isGroundedBefore && !gravityPass) {
                     float hitHeight = Vector3.Dot(hit.point - characterGroundPosition, _playerUp);
-                    Vector3 start = hit.point + 0.1f * Vector3.up - flatHit * 0.01f;
-                    bool b = Physics.Raycast(start, _gravityDirection, out RaycastHit h, _maxStepUpHeight, _whatIsGround);
+                    Vector3 start = hit.point + Vector3.up - flatHit * 0.01f;
+                    bool b = Physics.Raycast(start, _gravityDirection, out RaycastHit h, _maxStepUpHeight + 1f, _whatIsGround);
                     
-
+                    Debug.Log(hitHeight);
                     if (b && hitHeight <= _maxStepUpHeight && Vector3.Angle(h.normal, -_gravityDirection) <= MaxSlopeAngle) {
                         Debug.DrawRay(start, _gravityDirection * h.distance, Color.cyan, 1f);
                         _isStep = true;
                         leftover = vel - snapToSurface + hitHeight * (-_gravityDirection);
                     } else {
-                        Debug.DrawRay(start, _gravityDirection * _maxStepUpHeight, b ? Color.magenta : Color.black, 1f);
+                        Debug.DrawRay(start, _gravityDirection * (_maxStepUpHeight + 1f), b ? Color.Lerp(Color.black, Color.cyan, 0.2f) : Color.black, 1f);
                     }
 
                 }
@@ -372,12 +369,12 @@ public class KinematicCharacterController : MonoBehaviour
             return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, gravityPass, velInit);
         } 
         
-        else if (gravityPass && _isGroudedBefore && _jumpVelocityIS == 0) 
+        else if (gravityPass && _isGroundedBefore && _jumpVelocityIS == 0) 
         {
             if (_isDownStepEnabled) {
-                Debug.DrawRay(pos, _gravityDirection * ( _maxStepDownHeight + _height.Value * 0.5f), Color.cyan, 1f);
+                Debug.DrawRay(pos, _gravityDirection * ( _maxStepDownHeight + _height.Value * 0.5f), Color.magenta, 1f);
                 if (Physics.Raycast(pos, _gravityDirection, out RaycastHit h, _maxStepDownHeight + _height.Value * 0.5f, _whatIsGround) && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
-                    Debug.Log(h.distance);
+                    //Debug.Log(h.distance);
                     _isStep = true;
                     return CollideAndSlide(-_playerUp * _maxStepUpHeight, pos, depth + 1, true, velInit);
                 }
