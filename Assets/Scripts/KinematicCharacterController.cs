@@ -129,7 +129,9 @@ public class KinematicCharacterController : MonoBehaviour
     [SerializeField] private float _maxStepUpHeight = 0.3f;
     [SerializeField] private float _maxStepDownHeight = -0.3f;
     [SerializeField] private bool _isUpStepEnabled;
+    public bool IsUpStepEnabled => _isUpStepEnabled;
     [SerializeField] private bool _isDownStepEnabled;
+    public bool IsDownStepEnabled => _isDownStepEnabled;
     private bool _isStep;
     #endregion
 

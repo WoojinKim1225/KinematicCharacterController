@@ -18,78 +18,104 @@ public class KinematicCharacterControllerEditor : Editor
 
     SerializedProperty rigidbody;
     GUIContent rigidbodyContent = new GUIContent(
-        "    Rigidbody", 
+        "    Rigidbody",
         "The rigidbody of a character controller. Will auto allocate. \n\n캐릭터 컨트롤러가 사용할 강체입니다. 자동적으로 배치됩니다.");
 
     SerializedProperty collider;
     GUIContent colliderContent = new GUIContent(
-        "    Collider", 
+        "    Collider",
         "The capsule collider belonging to the character controller's child. Will auto allocate. \n\n캐릭터 컨트롤러가 사용할 자식의 캡슐콜라이더입니다. 자동적으로 배치됩니다.");
 
     bool showColliders;
 
     SerializedProperty capsuleRadius;
     GUIContent capsuleRadiusContent = new GUIContent(
-        "    Capsule Radius", 
-        "The capsule collider's radius. \n\n플레이어 콜라이더의 반지름입니다.");
+        "    Capsule Radius",
+        "The radius of the capsule collider. \n\nThis determines the width of the player's collision area."
+        + "\n--------------------\n"
+        + "캡슐 콜라이더의 반지름입니다. \n\n플레이어의 충돌 영역의 너비를 결정합니다."
+    );
 
     SerializedProperty capsuleHeight;
     GUIContent capsuleHeightContent = new GUIContent(
-        "    Capsule Height", 
-        "The capsule collider's idle height. \n\n플레이어 콜라이더의 기본 높이입니다.");
+        "    Capsule Height",
+        "The idle height of the capsule collider. \n\nThis defines the player's default standing height."
+        + "\n--------------------\n"
+        + "캡슐 콜라이더의 기본 높이입니다. \n\n플레이어의 기본 서있는 높이를 정의합니다."
+    );
 
     SerializedProperty crouchedCapsuleHeight;
     GUIContent crouchedCapsuleHeightContent = new GUIContent(
-        "    Crouched Capsule Height", 
-        "The capsule collider's height when crouched. \n\n플레이어 콜라이더가 웅크렸을 때의 높이입니다.");
+        "    Crouched Capsule Height",
+        "The height of the capsule collider when crouched. \n\nThis defines the player's height while crouching."
+        + "\n--------------------\n"
+        + "웅크릴 때의 캡슐 콜라이더 높이입니다. \n\n플레이어가 웅크렸을 때의 높이를 정의합니다."
+    );
 
     SerializedProperty skinWidth;
     GUIContent skinWidthContent = new GUIContent(
         "    Collider Skin Width",
-        "Additional space around the collision shape, preventing collision issues and passage problems. \n\n캐릭터 콜리전 주위에 추가적인 공간입니다. 충돌 처리와 통과 문제를 방지합니다."
+        "Additional space around the collision shape to prevent collision issues and clipping. \n\nThis adds padding to the collider to prevent clipping with other objects."
+        + "\n--------------------\n"
+        + "충돌 형태 주위에 추가적인 공간을 제공하여 충돌 문제 및 클리핑을 방지합니다. \n\n이는 콜라이더의 경계를 팽창시켜 다른 개체와의 클리핑을 방지합니다."
     );
 
     SerializedProperty maxBounce;
     GUIContent maxBounceContent = new GUIContent(
         "    Maximum Collision Bounces",
-        "The number of computation cycles used to process collider collisions. Too low a value can make movement inaccurate, while too high a value can burden the computation. \n\n콜라이더 충돌을 처리하는 데 사용되는 연산 주기입니다. 값이 너무 낮으면 이동이 부정확해질 수 있고, 값이 너무 높으면 연산에 부하가 걸릴 수 있습니다."
+        "The number of cycles used to process collider collisions. \n\nThis determines the number of iterations used for collision resolution."
+        + "\n--------------------\n"
+        + "충돌 처리에 사용되는 계산 주기의 횟수입니다. \n\n충돌 해결에 사용되는 반복 횟수를 결정합니다."
     );
 
     bool showMovements;
 
     SerializedProperty viewDirection;
     GUIContent viewDirectionContent = new GUIContent(
-        "    View Direction", 
-        "The character's view direction. Sets the character's forward and right direction. \nCan set with SetViewDirection(Vector3 dir). \n\n캐릭터의 방향입니다. 앞방향과 옆방향을 설정합니다. \nSetViewDirection(Vector3 dir)으로 값을 변경할 수 있습니다.");
-    
+        "    View Direction",
+        "The direction the character is facing. \n\nThis sets the character's forward and right directions."
+        + "\n--------------------\n"
+        + "캐릭터의 바라보는 방향입니다. \n\n캐릭터의 앞방향과 오른쪽 방향을 설정합니다."
+    );
 
     SerializedProperty gravity;
     GUIContent gravityContent = new GUIContent(
         "    Gravity",
-        "The acceleration in world space that changes the velocity of the character. \nIt is recommended to set this value to 20 or higher in the downward direction. \n\n캐릭터의 속도를 변경하는 항상 적용되는 가속도입니다. \n이 값은 아래 방향으로 20 이상으로 설정하는 것이 권장됩니다.");
+        "The acceleration due to gravity affecting the character's movement. \n\nThis determines how quickly the character falls."
+        + "\n--------------------\n"
+        + "캐릭터의 이동에 영향을 주는 세계 공간 가속도입니다. \n\n캐릭터가 빠르게 떨어지는 속도를 결정합니다."
+    );
 
     SerializedProperty speedControlMode;
     GUIContent speedControlModeContent = new GUIContent(
         "    Speed Control Mode",
-        "The interpolation of the player moving. \n\n캐릭터의 이동속도 증가 모드입니다."
+        "The interpolation mode for player movement. \n\nThis determines how the player's movement speed changes over time."
+        + "\n--------------------\n"
+        + "플레이어 이동에 대한 보간 모드입니다. \n\n플레이어의 이동 속도가 시간에 따라 어떻게 변하는지 결정합니다."
     );
 
     SerializedProperty moveAcceleration;
     GUIContent moveAccelerationContent = new GUIContent(
         "    Move Acceleration",
-        "The acceleration of the player moving. \n\n캐릭터의 이동 가속도입니다. 플레이어의 속도는 이동속도에 다다를 때 까지 증가합니다."
+        "The rate at which the player's movement speed increases. \n\nThis controls how quickly the player accelerates when moving."
+        + "\n--------------------\n"
+        + "플레이어 이동 속도가 증가/감소하는 속도입니다. \n\n플레이어가 이동할 때 얼마나 빨리 가속/감속하는지 결정합니다."
     );
 
     SerializedProperty moveDamp;
     GUIContent moveDampContent = new GUIContent(
         "    Move Damp",
-        "The damp value of the player moving. \n\n캐릭터의 이동 가속도입니다. 플레이어의 속도는 이동속도에 점근합니다."
+        "The rate at which the player's movement speed converges. \n\nThis controls how quickly the player slows down when near the target velocity"
+        + "\n--------------------\n"
+        + "플레이어 이동 속도가 점근하는 속도입니다. \n\n플레이어가 목표 속도에 얼만큼 빨리 수렴할지를 결정합니다."
     );
 
     SerializedProperty moveSpeed;
     GUIContent moveSpeedContent = new GUIContent(
         "    Move Speed",
-        "The speed of the player moves in world space. \n\n캐릭터의 이동속도입니다."
+        "The speed at which the player moves in world space. \n\nThis determines the player's movement speed."
+        + "\n--------------------\n"
+        + "플레이어의 이동하는 속도입니다. \n\n플레이어의 최대 이동 속도를 결정합니다."
     );
 
     bool useJumpMaxHeight;
@@ -97,33 +123,76 @@ public class KinematicCharacterControllerEditor : Editor
     SerializedProperty jumpSpeed;
     GUIContent jumpSpeedContent = new GUIContent(
         "    Jump Speed",
-        "The start speed of a player begins jump. \n\n점프를 시작하는 속도입니다."
+        "The initial speed when the player begins a jump. \n\nThis determines how high the player jumps initially."
+        + "\n--------------------\n"
+        + "플레이어가 점프를 시작할 때의 초기 속도입니다. \n\n플레이어가 처음 점프할 때 얼마나 높이 점프하는지 결정합니다."
     );
 
     SerializedProperty maxJumpHeight;
     GUIContent maxJumpHeightContent = new GUIContent(
         "    Maximum Jump Height",
-        "The maximum height the character can reach by jumping. \n\n점프를 하여 도달할 수 있는 최대 높이입니다."
+        "The maximum height the player can reach with a jump. \n\nThis determines the maximum height the player can achieve when jumping."
+        + "\n--------------------\n"
+        + "점프로 플레이어가 도달할 수 있는 최대 높이입니다. \n\n플레이어가 점프를 시작할 때의 초기 속도를 결정합니다."
     );
 
     SerializedProperty sprintSpeedMultiplier;
     GUIContent sprintSpeedMultiplierContent = new GUIContent(
         "    Sprint Speed Multiplier",
-        "The increase in movement speed when the sprint key is pressed. \n\n달리기 키를 눌렀을 때의 이동 속도 증가량입니다."
+        "The increase in movement speed when sprinting. \n\nThis determines how much faster the player moves when sprinting."
+        + "\n--------------------\n"
+        + "달리기 중에 이동 속도가 증가하는 비율입니다. \n\n달리기 중에 플레이어가 얼마나 빨리 이동하는지를 결정합니다."
     );
-
     bool showSlopeAndStepHandle;
 
     SerializedProperty maxSlopeAngle;
     GUIContent maxSlopeAngleContent = new GUIContent(
         "    Maximum Slope Angle",
-        "The angle of a slope that can player move. \n\n플레이어가 움직일 수 있는 최대 경사 각도입니다."
+        "The maximum angle of a slope the player can climb. \n\nThis determines the steepest slope the player can walk up."
+        + "\n--------------------\n"
+        + "플레이어가 오를 수 있는 최대 경사의 각도입니다. \n\n플레이어가 오를 수 있는 가장 가파른 경사를 결정합니다."
     );
 
     SerializedProperty minCeilingAngle;
     GUIContent minCeilingAngleContent = new GUIContent(
         "    Minimum Ceiling Angle",
-        "The angle of a ceiling that can player move. If an angle is greater that this value, player's movement will be canceled. \n\n플레이어가 이동할 수 있는 천장의 각도입니다. 이 값보다 큰 각도의 경우 플레이어의 이동이 취소됩니다."
+        "The minimum angle of a ceiling the player can move under. \n\nIf the angle is greater than this value, the player's movement will be blocked."
+        + "\n--------------------\n"
+        + "플레이어가 움직일 수 있는 최소 천장의 각도입니다. \n\n만약 이 값보다 큰 각도의 천장이라면 플레이어의 움직임이 중단됩니다."
+    );
+
+    SerializedProperty isUpStepEnabled;
+    GUIContent isUpStepEnabledContent = new GUIContent(
+        "   Can Step Up?",
+        "Whether the player can step up onto higher surfaces without obstruction. \n\nDetermines if the player can step up onto higher surfaces smoothly."
+        + "\n--------------------\n"
+        + "플레이어가 장애물을 만나지 않고 위로 올라갈 수 있는지 여부입니다. \n\n플레이어가 매끄럽게 위로 올라갈 수 있는지 여부를 결정합니다."
+    );
+
+
+    SerializedProperty maxStepUpHeight;
+    GUIContent maxStepUpHeightContent = new GUIContent(
+        "   Maximum Step Up Height",
+        "The maximum height the player can step up onto. \n\nDetermines the maximum height difference the player can step up onto without obstruction."
+        + "\n--------------------\n"
+        + "플레이어가 위로 올라갈 수 있는 최대 높이입니다. \n\n플레이어가 장애물을 만나지 않고 위로 올라갈 수 있는 최대 높이를 결정합니다."
+    );
+
+
+    SerializedProperty isDownStepEnabled;
+    GUIContent isDownStepEnabledContent = new GUIContent(
+        "   Can Step Down?",
+        "Whether the player can step down from higher surfaces without jumping. \n\nDetermines if the player can step down from higher surfaces smoothly without needing to jump."
+        + "\n--------------------\n"
+        + "플레이어가 공중에 떠 있지 않고 높은 표면에서 내려갈 수 있는지 여부입니다. \n\n플레이어가 매끄럽게 높은 표면에서 내려갈 수 있는지 여부를 결정합니다."
+    );
+
+    SerializedProperty maxStepDownHeight;
+    GUIContent maxStepDownHeightContent = new GUIContent(
+        "   Maximum Step Down Height",
+        "The maximum height the player can step down from. \n\nDetermines the maximum height difference the player can step down from smoothly without needing to jump."
+        + "\n--------------------\n"
+        + "플레이어가 아래로 내려갈 수 있는 최대 높이입니다. \n\n플레이어가 매끄럽게 높은 표면에서 내려갈 수 있는 최대 높이를 결정합니다."
     );
 
     void OnEnable()
@@ -158,21 +227,27 @@ public class KinematicCharacterControllerEditor : Editor
 
         maxSlopeAngle = serializedObject.FindProperty("_maxSlopeAngle");
         minCeilingAngle = serializedObject.FindProperty("_minCeilingAngle");
+
+        isUpStepEnabled = serializedObject.FindProperty("_isUpStepEnabled");
+        maxStepUpHeight = serializedObject.FindProperty("_maxStepUpHeight");
+        isDownStepEnabled = serializedObject.FindProperty("_isDownStepEnabled");
+        maxStepDownHeight = serializedObject.FindProperty("_maxStepDownHeight");
     }
 
     public override void OnInspectorGUI()
     {
-
+        KinematicCharacterController controller = (KinematicCharacterController)target;
         debug = EditorGUILayout.BeginToggleGroup("Debug", debug);
         EditorGUILayout.EndToggleGroup();
 
-        if (debug) {
+        if (debug)
+        {
             base.OnInspectorGUI();
             return;
         }
 
         serializedObject.Update();
-        
+
         int height = DrawShapes();
 
         EditorGUILayout.Space(height + 100f);
@@ -184,7 +259,8 @@ public class KinematicCharacterControllerEditor : Editor
 
         showPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(showPhysics, "Physics");
 
-        if (showPhysics) {
+        if (showPhysics)
+        {
             EditorGUILayout.PropertyField(rigidbody, rigidbodyContent, true);
             EditorGUILayout.PropertyField(collider, colliderContent, true);
         }
@@ -193,7 +269,8 @@ public class KinematicCharacterControllerEditor : Editor
 
         showColliders = EditorGUILayout.BeginFoldoutHeaderGroup(showColliders, "Colliders/Collisions");
 
-        if (showColliders) {
+        if (showColliders)
+        {
             EditorGUILayout.LabelField("Colliders");
             EditorGUILayout.PropertyField(capsuleRadius, capsuleRadiusContent, true);
             EditorGUILayout.PropertyField(capsuleHeight, capsuleHeightContent, true);
@@ -204,20 +281,23 @@ public class KinematicCharacterControllerEditor : Editor
         }
 
         EditorGUILayout.EndFoldoutHeaderGroup();
-        
+
         showMovements = EditorGUILayout.BeginFoldoutHeaderGroup(showMovements, "Movements");
 
-        if (showMovements) {
+        if (showMovements)
+        {
             EditorGUILayout.LabelField("Orientation");
             EditorGUILayout.PropertyField(viewDirection, viewDirectionContent, true);
 
             EditorGUILayout.LabelField("Horizontal Movement");
             EditorGUILayout.PropertyField(speedControlMode, speedControlModeContent, true);
             EditorGUILayout.PropertyField(moveSpeed, moveSpeedContent, true);
-            if (speedControlMode.enumValueIndex == 1) {
+            if (speedControlMode.enumValueIndex == 1)
+            {
                 EditorGUILayout.PropertyField(moveAcceleration, moveAccelerationContent, true);
             }
-            if (speedControlMode.enumValueIndex == 2) {
+            if (speedControlMode.enumValueIndex == 2)
+            {
                 EditorGUILayout.PropertyField(moveDamp, moveDampContent, true);
             }
 
@@ -229,22 +309,30 @@ public class KinematicCharacterControllerEditor : Editor
             useJumpMaxHeight = EditorGUILayout.BeginToggleGroup("Use jump max height / 점프 최대 높이 사용하기", useJumpMaxHeight);
             EditorGUILayout.EndToggleGroup();
 
-            if (useJumpMaxHeight) {
+            if (useJumpMaxHeight)
+            {
                 EditorGUILayout.PropertyField(maxJumpHeight, maxJumpHeightContent, true);
-            } else {
+            }
+            else
+            {
                 EditorGUILayout.PropertyField(jumpSpeed, jumpSpeedContent, true);
             }
 
-            
+
         }
 
         EditorGUILayout.EndFoldoutHeaderGroup();
 
         showSlopeAndStepHandle = EditorGUILayout.BeginFoldoutHeaderGroup(showSlopeAndStepHandle, "Slope and Step Handle");
 
-        if (showSlopeAndStepHandle) {
+        if (showSlopeAndStepHandle)
+        {
             EditorGUILayout.PropertyField(maxSlopeAngle, maxSlopeAngleContent, true);
             EditorGUILayout.PropertyField(minCeilingAngle, minCeilingAngleContent, true);
+            EditorGUILayout.PropertyField(isUpStepEnabled, isUpStepEnabledContent, true);
+            if (controller.IsUpStepEnabled) EditorGUILayout.PropertyField(maxStepUpHeight, maxStepUpHeightContent, true);
+            EditorGUILayout.PropertyField(isDownStepEnabled, isDownStepEnabledContent, true);
+            if (controller.IsDownStepEnabled) EditorGUILayout.PropertyField(maxStepDownHeight, maxStepDownHeightContent, true);
         }
 
         EditorGUILayout.EndFoldoutHeaderGroup();
@@ -279,16 +367,13 @@ public class KinematicCharacterControllerEditor : Editor
         DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.JumpMaxHeight) * magnify);
 
 
-        DrawArrow(center + Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f + Vector3.up * 10f, center + Vector3.up * 10f, false, true);
+        DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, false, true);
 
-        if (controller.SpeedControlMode == KinematicCharacterController.ESpeedControlMode.Linear) {
-            Vector3 p = Vector3.Lerp(Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, Vector3.zero, Time.fixedUnscaledTime % 2f);
-            Handles.DrawLine(center + Vector3.up * 5f + p, center + Vector3.up * 15f + p);
-        }
         return h;
     }
 
-    void DrawCapsule(Vector3 center, float r, float h){
+    void DrawCapsule(Vector3 center, float r, float h)
+    {
         Vector3 a = Vector3.right * r - Vector3.up * (h - r);
         Vector3 b = Vector3.right * r - Vector3.up * r;
         Vector3 c = -Vector3.right * r - Vector3.up * (h - r);
@@ -304,8 +389,9 @@ public class KinematicCharacterControllerEditor : Editor
     }
 
 
-    void DrawArrow(Vector3 from, Vector3 to, bool isLeftEnable= true, bool isRightEnable = true) {
-        Handles.DrawLine(from,to);
+    void DrawArrow(Vector3 from, Vector3 to, bool isLeftEnable = true, bool isRightEnable = true)
+    {
+        Handles.DrawLine(from, to);
         if (isLeftEnable) Handles.DrawLine(to, to + Quaternion.Euler(0, 0, 45f) * (from - to).normalized * 10f);
         if (isRightEnable) Handles.DrawLine(to, to + Quaternion.Euler(0, 0, -45f) * (from - to).normalized * 10f);
     }

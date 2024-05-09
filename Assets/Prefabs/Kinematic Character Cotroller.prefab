@@ -173,6 +173,9 @@ MonoBehaviour:
   _viewDirection: {x: 0, y: 0, z: 1}
   _gravity: {x: 0, y: -20, z: 0}
   _moveSpeed: 4
+  _speedControlMode: 0
+  _moveAcceleration: 10
+  _moveDamp: 10
   _idleHeight: 2
   _crouchHeight: 1.2
   _capsuleRadius: 0.5

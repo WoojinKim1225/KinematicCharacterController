@@ -2075,26 +2075,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2608544442499120310, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: _moveDamp
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2608544442499120310, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: inputAction
-      value: 
-      objectReference: {fileID: -944628639613478452, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
-    - target: {fileID: 2608544442499120310, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: _moveAcceleration
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2608544442499120310, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: _speedControlMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2608544442499120310, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: inputAction.m_Name
-      value: Input
-      objectReference: {fileID: 0}
     - target: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_Name
       value: Kinematic Character Cotroller
