@@ -17,6 +17,7 @@ public class force : MonoBehaviour
     void FixedUpdate()
     {
         if (!b) return;
-        kcc.AddForce(f);
+        //kcc.AddForce(f);
+        kcc.SetPosition(Vector3.up);
     }
 }

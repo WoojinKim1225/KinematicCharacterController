@@ -5,16 +5,9 @@
     "m_Properties": [
         {
             "m_Id": "b4928cbebf6041dea50cb8db2cc7ffb7"
-        },
-        {
-            "m_Id": "93413402f85747e0a8313c90434a46c4"
         }
     ],
-    "m_Keywords": [
-        {
-            "m_Id": "7c62c1fd7cf246a789aea6e2155c6615"
-        }
-    ],
+    "m_Keywords": [],
     "m_Dropdowns": [],
     "m_CategoryData": [
         {
@@ -4011,42 +4004,6 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
-    "m_ObjectId": "7c62c1fd7cf246a789aea6e2155c6615",
-    "m_Guid": {
-        "m_GuidSerialized": "e4f31568-d672-4391-b78e-fbd9b42dcb6c"
-    },
-    "m_Name": "GridMode",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "GridMode",
-    "m_DefaultReferenceName": "_GRIDMODE",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_KeywordType": 1,
-    "m_KeywordDefinition": 0,
-    "m_KeywordScope": 0,
-    "m_KeywordStages": 63,
-    "m_Entries": [
-        {
-            "id": 1,
-            "displayName": "World",
-            "referenceName": "WORLD"
-        },
-        {
-            "id": 2,
-            "displayName": "Object",
-            "referenceName": "OBJECT"
-        }
-    ],
-    "m_Value": 0,
-    "m_IsEditable": true
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "8105b416693347c8a38237f7e83d8adb",
@@ -4474,36 +4431,6 @@
         "z": 0.0,
         "w": 0.0
     }
-}
-
-{
-    "m_SGVersion": 3,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty",
-    "m_ObjectId": "93413402f85747e0a8313c90434a46c4",
-    "m_Guid": {
-        "m_GuidSerialized": "521fe91a-6ae7-42b9-9dc3-c5e107b1a3e4"
-    },
-    "m_Name": "GridColor",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "GridColor",
-    "m_DefaultReferenceName": "_GridColor",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": {
-        "r": 0.0,
-        "g": 0.0,
-        "b": 0.0,
-        "a": 0.0
-    },
-    "isMainColor": false,
-    "m_ColorMode": 0
 }
 
 {
@@ -5142,12 +5069,6 @@
     "m_ChildObjectList": [
         {
             "m_Id": "b4928cbebf6041dea50cb8db2cc7ffb7"
-        },
-        {
-            "m_Id": "93413402f85747e0a8313c90434a46c4"
-        },
-        {
-            "m_Id": "7c62c1fd7cf246a789aea6e2155c6615"
         }
     ]
 }

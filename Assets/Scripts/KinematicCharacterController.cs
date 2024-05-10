@@ -1,37 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
-
-// Stateful Class for Float
-[System.Serializable]
-public class Float
-{
-    [SerializeField] private float _value;
-    [SerializeField] private bool _isChanged;
-    [SerializeField] private float _beforeValue;
-    [SerializeField] private float _initialValue;
-
-    public float Value { get => _value; set => _value = value; }
-
-    public bool IsChanged => _isChanged;
-
-    public float InitialValue => _initialValue;
-
-    public Float(float v)
-    {
-        _value = v;
-        _beforeValue = v;
-        _initialValue = v;
-        _isChanged = false;
-    }
-
-    public void OnUpdate(float v)
-    {
-        _value = v;
-        _isChanged = _beforeValue != _value;
-        _beforeValue = _value;
-    }
-}
+using StatefulVariables;
 
 [RequireComponent(typeof(Rigidbody))]
 public class KinematicCharacterController : MonoBehaviour
@@ -55,6 +25,8 @@ public class KinematicCharacterController : MonoBehaviour
 
     [SerializeField] private Vector3 _gravity = Vector3.down * 20f;
     private Vector3 _gravityDirection => _gravity.normalized;
+
+    [SerializeField] private Vector3Stateful Gravity;
 
     //-------------------------------------------------------------
     [SerializeField] private float _moveSpeed = 4f;
@@ -113,6 +85,8 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 _horizontalDisplacement, _verticalDisplacement;
 
     private Vector3 _externalVelocity;
+    private Vector3 _externalPosition;
+    private bool _isPositionSet;
 
     private Vector3 _nextPositionWS;
 
@@ -158,9 +132,11 @@ public class KinematicCharacterController : MonoBehaviour
         _jumpMaxH = new Float(Mathf.Sqrt(_jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y)));
         _jumpMaxHeight = _jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y);
 
+        Gravity = new Vector3Stateful(_gravity);
+
         _characterCollider.bounds.Expand(-2 * _skinWidth);
-        //_characterCollider.height = _height.Value - 2 * _skinWidth;
-        //_characterCollider.radius = _radius.Value - _skinWidth;
+        _characterCollider.height = _height.Value - 2 * _skinWidth;
+        _characterCollider.radius = _radius.Value - _skinWidth;
     }
 
     void OnEnable()
@@ -277,12 +253,19 @@ public class KinematicCharacterController : MonoBehaviour
             _jumpVelocityWS = _jumpVelocityOS = _jumpVelocityIS * _jumpSpeed * _playerUp + _gravity * Time.fixedDeltaTime * 0.5f;
         }
 
-        //_moveVelocityWS += Vector3.Project(_externalVelocity, _groundNormal);
+        _jumpVelocityWS += _externalVelocity;
+        _externalVelocity = Vector3.zero;
         _playerHeightWS = _playerHeightOS * transform.localScale.y;
     }
 
     private void HandleCollisionsAndMovement()
     {
+        if (_isPositionSet) {
+            _jumpVelocityWS = _jumpVelocityOS = _gravity * Time.fixedDeltaTime * 0.5f;
+            _rb.MovePosition(_externalPosition);
+            _isPositionSet = false;
+            return;
+        }
         _horizontalDisplacement = CollideAndSlide(_moveVelocityWS * Time.fixedDeltaTime, _rb.position + _height.Value * _playerUp * 0.5f, 0, false);
         _verticalDisplacement = CollideAndSlide(_jumpVelocityWS * Time.fixedDeltaTime, _rb.position + _height.Value * _playerUp * 0.5f + _horizontalDisplacement, 0, true);
 
@@ -391,9 +374,10 @@ public class KinematicCharacterController : MonoBehaviour
         else if (gravityPass && !_isGrounded && _isGroundedBefore && _jumpVelocityIS == 0) 
         {
             if (_isDownStepEnabled) {
-                bool b = Physics.Raycast(pos, _gravityDirection, out RaycastHit h, _maxStepDownHeight + _height.Value * 0.5f, _whatIsGround);
+                bool b = Physics.Raycast(pos + _moveVelocityWS * Time.fixedDeltaTime, _gravityDirection, out RaycastHit h, _maxStepDownHeight + _height.Value * 0.5f, _whatIsGround);
+                bool b1 = Physics.SphereCast(pos + _moveVelocityWS * Time.fixedDeltaTime + capsulePoint, _characterCollider.bounds.extents.x, _gravityDirection, out RaycastHit h2, capsulePoint.magnitude * 2f, _whatIsGround);
 
-                if (b && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
+                if (b && !b1 && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
                     float downStepDistance = Vector3.Dot(h.point - characterGroundPosition, _playerUp);
                     Debug.Log("downStepDistance: " + downStepDistance);
                     _isStep = true;
@@ -422,6 +406,7 @@ public class KinematicCharacterController : MonoBehaviour
         _radius.OnUpdate(_capsuleRadius);
         _jumpS.OnUpdate(_jumpSpeed);
         _jumpMaxH.OnUpdate(_jumpMaxHeight);
+        Gravity.OnUpdate(_gravity);
 
         if (_height.IsChanged)
         {
@@ -450,6 +435,11 @@ public class KinematicCharacterController : MonoBehaviour
     #region Public Methods
         public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force) {
             _externalVelocity += force / _rb.mass * Time.fixedDeltaTime;
+        }
+
+        public void SetPosition(Vector3 position) {
+            _externalPosition = position;
+            _isPositionSet = true;
         }
     #endregion
 }

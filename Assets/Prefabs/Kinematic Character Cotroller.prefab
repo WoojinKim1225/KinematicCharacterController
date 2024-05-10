@@ -213,7 +213,7 @@ MonoBehaviour:
   _maxStepUpHeight: 0.5
   _maxStepDownHeight: 0.5
   _isUpStepEnabled: 1
-  _isDownStepEnabled: 1
+  _isDownStepEnabled: 0
 --- !u!1 &6604793984036076814
 GameObject:
   m_ObjectHideFlags: 0
