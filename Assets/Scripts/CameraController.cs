@@ -4,8 +4,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
 
+[RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
 {
+    private new Camera camera;
     [SerializeField] private InputActionReference _cameraRotateReference;
     [SerializeField] private KinematicCharacterController kcc;
     public float cameraSensitivity = 100f;
@@ -20,6 +22,7 @@ public class CameraController : MonoBehaviour
     void OnEnable()
     {
         ReferenceManagerExtensions.EnableReference(_cameraRotateReference, OnCameraRotate);
+        camera = Camera.main;
     }
 
     void OnDisable() 
@@ -33,6 +36,14 @@ public class CameraController : MonoBehaviour
 
     void FixedUpdate()
     {
+        float halfWidth =  camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+        float halfHeight = halfWidth / camera.aspect;
+
+        Vector3 UL = -halfWidth * transform.right + halfHeight * transform.up;
+        Vector3 UR = halfWidth * transform.right + halfHeight * transform.up;
+        Vector3 DL = -halfWidth * transform.right - halfHeight * transform.up;
+        Vector3 DR = halfWidth * transform.right - halfHeight * transform.up;
+
         if (Physics.Raycast(kcc.transform.TransformPoint(targetOffset), -transform.forward, out RaycastHit hit, -cameraOffset.z + 0.2f, _whatIsGround)) {
             offset =  -hit.distance + 0.2f;
         } else {

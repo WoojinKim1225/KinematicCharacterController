@@ -92,6 +92,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     [SerializeField] private bool _isGrounded = false;
     private bool _isGroundedBefore;
+    private Vector3 beforeGroundNormal = Vector3.zero;
     
     [SerializeField] private Vector3 _groundNormal = Vector3.up;
     [SerializeField] private Vector3 _playerUp = Vector3.up;
@@ -191,7 +192,10 @@ public class KinematicCharacterController : MonoBehaviour
 
         UpdateProperties();
 
+        beforeGroundNormal = Vector3.zero;
+
         HandleCollisionsAndMovement();
+
         _jumpVelocityISBefore = _jumpVelocityIS;
     }
 
@@ -337,8 +341,15 @@ public class KinematicCharacterController : MonoBehaviour
             // if wall
             else 
             {
-                //if (gravityPass && _isUpStep) return snapToSurface;
+                Debug.DrawRay(hit.point, hit.normal, Color.blue);
                 Vector3 flatHit = new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
+
+                if (gravityPass && beforeGroundNormal != Vector3.zero && Vector3.Dot(beforeGroundNormal, vel) <= 0) {
+                    _isGrounded = true;
+                    _groundNormal = Vector3.up;
+                }
+
+                beforeGroundNormal = hit.normal;
                 float scale = 1 - Vector3.Dot(flatHit, -new Vector3(velInit.x, 0, velInit.z).normalized);
                 
                 if (_isGrounded && !gravityPass)
@@ -350,6 +361,7 @@ public class KinematicCharacterController : MonoBehaviour
                     leftover = projectAndScale(leftover, hit.normal) * scale;
                 }
 
+                // if upStep
                 if (_isUpStepEnabled && _isGroundedBefore && !gravityPass) {
                     Vector3 start = hit.point + Vector3.up - flatHit * 0.01f;
                     bool b = Physics.Raycast(start, _gravityDirection, out RaycastHit h, _maxStepUpHeight + 1f, _whatIsGround);
@@ -359,7 +371,8 @@ public class KinematicCharacterController : MonoBehaviour
                         Debug.DrawRay(start, _gravityDirection * h.distance, Color.cyan);
                         Debug.Log("upStepDistance: " + upStepDistance);
                         _isStep = true;
-                        leftover = vel - snapToSurface + upStepDistance * (-_gravityDirection);
+                        snapToSurface = vel.normalized * dist + upStepDistance * (-_gravityDirection);
+                        leftover = Vector3.zero;
                         _jumpVelocityWS += _maxStepDownHeight * _gravityDirection / Time.fixedDeltaTime;
                     } else {
                         Debug.DrawRay(start, _gravityDirection * (_maxStepUpHeight + 1f), b ? Color.Lerp(Color.black, Color.cyan, 0.2f) : Color.black);
