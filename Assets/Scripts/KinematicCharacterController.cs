@@ -98,6 +98,8 @@ public class KinematicCharacterController : MonoBehaviour
     private float _crouchInputIS;
     private float _sprintInputIS;
 
+    private float _jumpVelocityISBefore;
+
     private Vector3 _moveVelocityOS, _moveVelocityTargetOS;
     private Vector3 _jumpVelocityOS;
     private float _playerHeightOS;
@@ -132,6 +134,10 @@ public class KinematicCharacterController : MonoBehaviour
     private bool _isStep;
     #endregion
 
+
+    private int airJumpCount = 5;
+    private int airJump = 5;
+
     void Awake() {
         ReferenceManagerExtensions.InitAssets(_moveReference, _jumpReference, _crouchReference, _sprintReference);
         
@@ -153,8 +159,8 @@ public class KinematicCharacterController : MonoBehaviour
         _jumpMaxHeight = _jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y);
 
         _characterCollider.bounds.Expand(-2 * _skinWidth);
-        _characterCollider.height = _height.Value - 2 * _skinWidth;
-        _characterCollider.radius = _radius.Value - _skinWidth;
+        //_characterCollider.height = _height.Value - 2 * _skinWidth;
+        //_characterCollider.radius = _radius.Value - _skinWidth;
     }
 
     void OnEnable()
@@ -200,6 +206,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (_isGrounded) airJump = airJumpCount;
         CalculateObjectSpaceVariables();
 
         CalculateTangentSpaceVariables();
@@ -209,6 +216,7 @@ public class KinematicCharacterController : MonoBehaviour
         UpdateProperties();
 
         HandleCollisionsAndMovement();
+        _jumpVelocityISBefore = _jumpVelocityIS;
     }
 
     #region Private Methods
@@ -221,7 +229,9 @@ public class KinematicCharacterController : MonoBehaviour
     private void CalculateObjectSpaceVariables()
     {
         _jumpVelocityOS = _isGrounded && _jumpVelocityIS > 0 ? _jumpVelocityIS * _jumpSpeed * _playerUp + _gravity * Time.fixedDeltaTime * 0.5f : _gravity * Time.fixedDeltaTime;
+
         _playerHeightOS = _crouchInputIS > 0 ? _crouchHeight : _idleHeight;
+
         float moveSpeedMultiplier = _crouchInputIS > 0f ? 0.5f : (_sprintInputIS > 0 ? _sprintSpeedMultiplier : 1f);
         _moveVelocityTargetOS = new Vector3(_moveVelocityIS.x, 0, _moveVelocityIS.y) * _moveSpeed * moveSpeedMultiplier;
         switch (_speedControlMode)
@@ -247,7 +257,6 @@ public class KinematicCharacterController : MonoBehaviour
                 _moveVelocityOS = _moveVelocityTargetOS;
                 break;
         }
-        
     }
 
     private void CalculateTangentSpaceVariables()
@@ -257,11 +266,18 @@ public class KinematicCharacterController : MonoBehaviour
 
     private void CalculateWorldSpaceVariables()
     {
+        if (!_isGrounded) _groundNormal = -_gravityDirection;
         _moveVelocityWS = (_moveVelocityTS - Vector3.Dot(_groundNormal, _moveVelocityTS) / Vector3.Dot(_groundNormal, _playerUp) * _playerUp).normalized * _moveVelocityTS.magnitude;
-        _moveVelocityWS += Vector3.ProjectOnPlane(_externalVelocity, _groundNormal);
+        //_moveVelocityWS += Vector3.ProjectOnPlane(_externalVelocity, _groundNormal);
+
         if (!_isGrounded) _jumpVelocityWS += _gravity * Time.fixedDeltaTime;
         else _jumpVelocityWS = _jumpVelocityOS;
-        _moveVelocityWS += Vector3.Project(_externalVelocity, _groundNormal);
+
+        if (_jumpVelocityIS > 0 && _jumpVelocityISBefore < 1 && !_isGrounded && airJump-- > 0) {
+            _jumpVelocityWS = _jumpVelocityOS = _jumpVelocityIS * _jumpSpeed * _playerUp + _gravity * Time.fixedDeltaTime * 0.5f;
+        }
+
+        //_moveVelocityWS += Vector3.Project(_externalVelocity, _groundNormal);
         _playerHeightWS = _playerHeightOS * transform.localScale.y;
     }
 
@@ -301,6 +317,7 @@ public class KinematicCharacterController : MonoBehaviour
         float dist = vel.magnitude + _skinWidth;
         Vector3 capsulePoint = (_height.Value * 0.5f - _radius.Value) * _playerUp;
         Vector3 characterGroundPosition = pos - _height.Value * 0.5f * _characterCollider.transform.up;
+        Debug.DrawRay(pos + capsulePoint, vel.normalized * dist, gravityPass? Color.white : Color.blue);
 
         if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _characterCollider.bounds.extents.x, vel.normalized, out hit, dist, _whatIsGround))
         {
@@ -351,37 +368,45 @@ public class KinematicCharacterController : MonoBehaviour
                 }
 
                 if (_isUpStepEnabled && _isGroundedBefore && !gravityPass) {
-                    float hitHeight = Vector3.Dot(hit.point - characterGroundPosition, _playerUp);
                     Vector3 start = hit.point + Vector3.up - flatHit * 0.01f;
                     bool b = Physics.Raycast(start, _gravityDirection, out RaycastHit h, _maxStepUpHeight + 1f, _whatIsGround);
+                    float upStepDistance = Vector3.Dot(h.point - characterGroundPosition, _playerUp);
                     
-                    Debug.Log(hitHeight);
-                    if (b && hitHeight <= _maxStepUpHeight && Vector3.Angle(h.normal, -_gravityDirection) <= MaxSlopeAngle) {
-                        Debug.DrawRay(start, _gravityDirection * h.distance, Color.cyan, 1f);
+                    if (b && upStepDistance <= _maxStepUpHeight && Vector3.Angle(h.normal, -_gravityDirection) <= MaxSlopeAngle) {
+                        Debug.DrawRay(start, _gravityDirection * h.distance, Color.cyan);
+                        Debug.Log("upStepDistance: " + upStepDistance);
                         _isStep = true;
-                        leftover = vel - snapToSurface + hitHeight * (-_gravityDirection);
+                        leftover = vel - snapToSurface + upStepDistance * (-_gravityDirection);
+                        _jumpVelocityWS += _maxStepDownHeight * _gravityDirection / Time.fixedDeltaTime;
                     } else {
-                        Debug.DrawRay(start, _gravityDirection * (_maxStepUpHeight + 1f), b ? Color.Lerp(Color.black, Color.cyan, 0.2f) : Color.black, 1f);
+                        Debug.DrawRay(start, _gravityDirection * (_maxStepUpHeight + 1f), b ? Color.Lerp(Color.black, Color.cyan, 0.2f) : Color.black);
                     }
 
                 }
             }
+
             return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, gravityPass, velInit);
         } 
         
-        else if (gravityPass && _isGroundedBefore && _jumpVelocityIS == 0) 
+        else if (gravityPass && !_isGrounded && _isGroundedBefore && _jumpVelocityIS == 0) 
         {
             if (_isDownStepEnabled) {
-                Debug.DrawRay(pos, _gravityDirection * ( _maxStepDownHeight + _height.Value * 0.5f), Color.magenta, 1f);
-                if (Physics.Raycast(pos, _gravityDirection, out RaycastHit h, _maxStepDownHeight + _height.Value * 0.5f, _whatIsGround) && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
-                    //Debug.Log(h.distance);
+                bool b = Physics.Raycast(pos, _gravityDirection, out RaycastHit h, _maxStepDownHeight + _height.Value * 0.5f, _whatIsGround);
+
+                if (b && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
+                    float downStepDistance = Vector3.Dot(h.point - characterGroundPosition, _playerUp);
+                    Debug.Log("downStepDistance: " + downStepDistance);
                     _isStep = true;
+
+                    Debug.DrawRay(pos, _gravityDirection * ( _maxStepDownHeight + _height.Value * 0.5f), Color.magenta);
+
                     return CollideAndSlide(-_playerUp * _maxStepUpHeight, pos, depth + 1, true, velInit);
                 }
+                Debug.DrawRay(pos, _gravityDirection * ( _maxStepDownHeight + _height.Value * 0.5f), b ? Color.Lerp(Color.black, Color.magenta, 0.2f) : Color.black);
             }
             
         }
-        
+
         return vel;
     }
 
