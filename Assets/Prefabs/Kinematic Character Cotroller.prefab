@@ -168,14 +168,38 @@ MonoBehaviour:
   _sprintReference: {fileID: 6430348378485783799, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
   _rb: {fileID: 0}
   _characterCollider: {fileID: 0}
-  _skinWidth: 0.01
-  _maxBounces: 5
   _viewDirection: {x: 0, y: 0, z: 1}
-  _gravity: {x: 0, y: -20, z: 0}
   _moveSpeed: 4
+  _jumpSpeed: 10
+  _jumpMaxHeight: 2.5
+  _sprintSpeedMultiplier: 2
+  _maxAirJumpCount: 5
   _speedControlMode: 0
   _moveAcceleration: 10
   _moveDamp: 10
+  jumpSpeed:
+    _value: 0
+    _isChanged: 0
+    _beforeValue: 0
+    _initialValue: 0
+  jumpMaxHeight:
+    _value: 0
+    _isChanged: 0
+    _beforeValue: 0
+    _initialValue: 0
+  _airJump:
+    _value: 0
+    _isChanged: 0
+    _beforeValue: 0
+    _initialValue: 0
+  _skinWidth: 0.01
+  _maxBounces: 5
+  _gravity: {x: 0, y: -20, z: 0}
+  Gravity:
+    _value: {x: 0, y: 0, z: 0}
+    _isChanged: 0
+    _beforeValue: {x: 0, y: 0, z: 0}
+    _initialValue: {x: 0, y: 0, z: 0}
   _idleHeight: 2
   _crouchHeight: 1.2
   _capsuleRadius: 0.5
@@ -189,31 +213,18 @@ MonoBehaviour:
     _isChanged: 0
     _beforeValue: 0
     _initialValue: 0
-  _jumpSpeed: 10
-  _jumpMaxHeight: 2.5
-  _jumpS:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
-  _jumpMaxH:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
-  _sprintSpeedMultiplier: 2
   _maxSlopeAngle: 50
   _minCeilingAngle: 175
+  _isUpStepEnabled: 1
+  _maxStepUpHeight: 0.5
+  _isDownStepEnabled: 1
+  _maxStepDownHeight: 0.5
   _isGrounded: 0
   _groundNormal: {x: 0, y: 1, z: 0}
   _playerUp: {x: 0, y: 1, z: 0}
   _whatIsGround:
     serializedVersion: 2
     m_Bits: 1
-  _maxStepUpHeight: 0.5
-  _maxStepDownHeight: 0.5
-  _isUpStepEnabled: 1
-  _isDownStepEnabled: 0
 --- !u!1 &6604793984036076814
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.EditorTools;
 
 [CustomEditor(typeof(KinematicCharacterController))]
 [CanEditMultipleObjects]
@@ -9,12 +8,7 @@ public class KinematicCharacterControllerEditor : Editor
 {
     bool debug;
 
-    SerializedProperty moveReference;
-    SerializedProperty jumpReference;
-    SerializedProperty crouchReference;
-    SerializedProperty sprintReference;
-
-    bool showPhysics;
+    bool showComponents;
 
     SerializedProperty rigidbody;
     GUIContent rigidbodyContent = new GUIContent(
@@ -26,7 +20,8 @@ public class KinematicCharacterControllerEditor : Editor
         "    Collider",
         "The capsule collider belonging to the character controller's child. Will auto allocate. \n\n캐릭터 컨트롤러가 사용할 자식의 캡슐콜라이더입니다. 자동적으로 배치됩니다.");
 
-    bool showColliders;
+    bool physics;
+    bool characterSize;
 
     SerializedProperty capsuleRadius;
     GUIContent capsuleRadiusContent = new GUIContent(
@@ -143,6 +138,15 @@ public class KinematicCharacterControllerEditor : Editor
         + "\n--------------------\n"
         + "달리기 중에 이동 속도가 증가하는 비율입니다. \n\n달리기 중에 플레이어가 얼마나 빨리 이동하는지를 결정합니다."
     );
+
+    SerializedProperty crouchSpeedMultiplier;
+    GUIContent crouchSpeedMultiplierContent = new GUIContent(
+        "    Crouch Speed Multiplier",
+        "The decrease in movement speed when crouching. \n\nThis determines how much slower the player moves when crouching."
+        + "\n--------------------\n"
+        + "웅크리기 중에 이동 속도가 감소하는 비율입니다. \n\n웅크리기 중에 플레이어가 얼마나 느리게 이동하는지를 결정합니다."
+    );
+
     bool showSlopeAndStepHandle;
 
     SerializedProperty maxSlopeAngle;
@@ -197,11 +201,6 @@ public class KinematicCharacterControllerEditor : Editor
 
     void OnEnable()
     {
-        moveReference = serializedObject.FindProperty("_moveReference");
-        jumpReference = serializedObject.FindProperty("_jumpReference");
-        crouchReference = serializedObject.FindProperty("_crouchReference");
-        sprintReference = serializedObject.FindProperty("_sprintReference");
-
         rigidbody = serializedObject.FindProperty("_rb");
         collider = serializedObject.FindProperty("_characterCollider");
 
@@ -221,6 +220,7 @@ public class KinematicCharacterControllerEditor : Editor
         moveDamp = serializedObject.FindProperty("_moveDamp");
         moveSpeed = serializedObject.FindProperty("_moveSpeed");
         sprintSpeedMultiplier = serializedObject.FindProperty("_sprintSpeedMultiplier");
+        crouchSpeedMultiplier = serializedObject.FindProperty("_crouchSpeedMultiplier");
 
         jumpSpeed = serializedObject.FindProperty("_jumpSpeed");
         maxJumpHeight = serializedObject.FindProperty("_jumpMaxHeight");
@@ -252,32 +252,12 @@ public class KinematicCharacterControllerEditor : Editor
 
         EditorGUILayout.Space(height + 100f);
 
-        EditorGUILayout.PropertyField(moveReference, new GUIContent("Move Reference"));
-        EditorGUILayout.PropertyField(jumpReference, new GUIContent("Jump Reference"));
-        EditorGUILayout.PropertyField(crouchReference, new GUIContent("Crouch Reference"));
-        EditorGUILayout.PropertyField(sprintReference, new GUIContent("Sprint Reference"));
+        showComponents = EditorGUILayout.BeginFoldoutHeaderGroup(showComponents, "Components");
 
-        showPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(showPhysics, "Physics");
-
-        if (showPhysics)
+        if (showComponents)
         {
             EditorGUILayout.PropertyField(rigidbody, rigidbodyContent, true);
             EditorGUILayout.PropertyField(collider, colliderContent, true);
-        }
-
-        EditorGUILayout.EndFoldoutHeaderGroup();
-
-        showColliders = EditorGUILayout.BeginFoldoutHeaderGroup(showColliders, "Colliders/Collisions");
-
-        if (showColliders)
-        {
-            EditorGUILayout.LabelField("Colliders");
-            EditorGUILayout.DelayedFloatField(capsuleRadius, capsuleRadiusContent);
-            EditorGUILayout.DelayedFloatField(capsuleHeight, capsuleHeightContent);
-            EditorGUILayout.DelayedFloatField(crouchedCapsuleHeight, crouchedCapsuleHeightContent);
-            EditorGUILayout.LabelField("Collisions");
-            EditorGUILayout.PropertyField(skinWidth, skinWidthContent, true);
-            EditorGUILayout.PropertyField(maxBounce, maxBounceContent, true);
         }
 
         EditorGUILayout.EndFoldoutHeaderGroup();
@@ -290,8 +270,8 @@ public class KinematicCharacterControllerEditor : Editor
             EditorGUILayout.PropertyField(viewDirection, viewDirectionContent, true);
 
             EditorGUILayout.LabelField("Horizontal Movement");
-            EditorGUILayout.PropertyField(speedControlMode, speedControlModeContent, true);
             EditorGUILayout.PropertyField(moveSpeed, moveSpeedContent, true);
+            EditorGUILayout.PropertyField(speedControlMode, speedControlModeContent, true);
             if (speedControlMode.enumValueIndex == 1)
             {
                 EditorGUILayout.PropertyField(moveAcceleration, moveAccelerationContent, true);
@@ -302,9 +282,7 @@ public class KinematicCharacterControllerEditor : Editor
             }
 
             EditorGUILayout.PropertyField(sprintSpeedMultiplier, sprintSpeedMultiplierContent, true);
-
-            EditorGUILayout.LabelField("Vertical Movement");
-            EditorGUILayout.PropertyField(gravity, gravityContent, true);
+            EditorGUILayout.PropertyField(crouchSpeedMultiplier, crouchSpeedMultiplierContent, true);
 
             useJumpMaxHeight = EditorGUILayout.BeginToggleGroup("Use jump max height / 점프 최대 높이 사용하기", useJumpMaxHeight);
             EditorGUILayout.EndToggleGroup();
@@ -317,11 +295,32 @@ public class KinematicCharacterControllerEditor : Editor
             {
                 EditorGUILayout.PropertyField(jumpSpeed, jumpSpeedContent, true);
             }
-
-
         }
 
         EditorGUILayout.EndFoldoutHeaderGroup();
+
+        physics = EditorGUILayout.BeginFoldoutHeaderGroup(physics, "Physics");
+
+        if (physics)
+        {
+            EditorGUILayout.PropertyField(skinWidth, skinWidthContent, true);
+            EditorGUILayout.PropertyField(maxBounce, maxBounceContent, true);
+            EditorGUILayout.PropertyField(gravity, gravityContent, true);
+        }
+
+        EditorGUILayout.EndFoldoutHeaderGroup();
+
+        characterSize = EditorGUILayout.BeginFoldoutHeaderGroup(characterSize, "Character Size");
+
+        if (characterSize)
+        {
+            EditorGUILayout.DelayedFloatField(capsuleRadius, capsuleRadiusContent);
+            EditorGUILayout.DelayedFloatField(capsuleHeight, capsuleHeightContent);
+            EditorGUILayout.DelayedFloatField(crouchedCapsuleHeight, crouchedCapsuleHeightContent);
+        }
+
+        EditorGUILayout.EndFoldoutHeaderGroup();
+
 
         showSlopeAndStepHandle = EditorGUILayout.BeginFoldoutHeaderGroup(showSlopeAndStepHandle, "Slope and Step Handle");
 
