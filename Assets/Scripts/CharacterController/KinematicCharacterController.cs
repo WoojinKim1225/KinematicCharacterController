@@ -13,6 +13,7 @@ public class KinematicCharacterController : MonoBehaviour
     [SerializeField] private CapsuleCollider _capsuleCollider;
 
     [SerializeField] private Vector3 _viewDirection = Vector3.forward;
+    public Rigidbody Rigidbody => _rb;
     public Vector3 ViewDirection { get => _viewDirection; set => _viewDirection = value; }
     public void SetViewDirection(Vector3 dir) => _viewDirection = dir;
 
@@ -72,6 +73,9 @@ public class KinematicCharacterController : MonoBehaviour
 
 
     private Vector3 _forward, _right;
+    public Vector3 Up => _playerUp.normalized;
+    public Vector3 Forward => _forward;
+    public Vector3 Right => _right;
 
     private Vector2 _moveVelocityIS;
     private float _jumpVelocityIS;
@@ -97,6 +101,10 @@ public class KinematicCharacterController : MonoBehaviour
     private float _playerHeightWS;
 
     private Vector3 _horizontalDisplacement, _verticalDisplacement;
+    public Vector3 Displacement => _horizontalDisplacement + _verticalDisplacement;
+    public Vector3 Velocity => Displacement / Time.fixedDeltaTime;
+    public Vector3 HorizontalDirection => _horizontalDisplacement;
+    public float Speed => _horizontalDisplacement.magnitude / Time.fixedDeltaTime;
 
     private Vector3 _externalVelocity;
     private Vector3 _externalPosition;
@@ -114,6 +122,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     private RaycastHit hit;
     [SerializeField] private LayerMask _whatIsGround;
+    public LayerMask WhatIsGround => _whatIsGround;
     private Vector3 groundExitDisplacement;
 
     private bool _isStep;
@@ -227,12 +236,14 @@ public class KinematicCharacterController : MonoBehaviour
             _groundNormal = -gravityDirection;
             _jumpVelocityWS += _gravity * Time.fixedDeltaTime;
             if (_isJumpStarted) {
-                if (_isGroundedBefore) {
-                    _jumpVelocityWS = groundExitDisplacement / Time.fixedDeltaTime;
-                    groundExitDisplacement = Vector3.zero;
-                } else if (_airJump.Value-- > 0) {
+                if (_airJump.Value-- > 0) {
                     _jumpVelocityWS = _jumpVelocityIS * _jumpSpeed * (-gravityDirection) + _gravity * Time.fixedDeltaTime * 0.5f;
                 }
+            }
+            else if (_isGroundedBefore && _jumpVelocityIS == 0 && _jumpVelocityISBefore == 0) {
+                _jumpVelocityWS = groundExitDisplacement / Time.fixedDeltaTime;
+                Debug.Log(groundExitDisplacement);
+                groundExitDisplacement = Vector3.zero;
             }
         }
         else _jumpVelocityWS = _jumpVelocityOS;
@@ -295,7 +306,6 @@ public class KinematicCharacterController : MonoBehaviour
         float dist = vel.magnitude + _skinWidth;
         Vector3 capsulePoint = (_height.Value * 0.5f - _radius.Value) * _playerUp.normalized;
         Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radius.Value;
-        Debug.DrawLine(characterLowestPosition, pos, Color.yellow);
 
         if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _skinWidth, vel.normalized, out hit, dist, _whatIsGround, queryTrigger))
         {
