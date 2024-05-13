@@ -23,6 +23,11 @@ public struct RigidTransform {
         rot = animator.GetBoneTransform(boneID).rotation;
     }
 
+    public void SetLocalTransformFromBone(Animator animator, HumanBodyBones boneID, Transform parent) {
+        pos = parent.InverseTransformPoint(animator.GetBoneTransform(boneID).position);
+        rot = Quaternion.Inverse(parent.rotation) * animator.GetBoneTransform(boneID).rotation;
+    }
+
     public void SetTransformFromBone(Animator animator, HumanBodyBones boneID, Quaternion init) {
         pos = animator.GetBoneTransform(boneID).position;
         rot = animator.GetBoneTransform(boneID).rotation * Quaternion.Inverse(init);
@@ -36,9 +41,11 @@ public class CharacterAnimator : MonoBehaviour
 
     private Vector3 velocity => kcc.Velocity;
 
-    private RigidTransform leftFootInit, rightFootInit, leftToesInit, rightToesInit;
+    private RigidTransform leftFootInit, rightFootInit;
 
-    [SerializeField] private RigidTransform leftFootBone, leftToesBone, rightFootBone, rightToesBone;
+    [SerializeField] private RigidTransform leftFootBone, rightFootBone, leftFootBoneOS, rightFootBoneOS;
+
+    private Vector3 leftFootBonePosBefore, rightFootBonePosBefore;
 
     private RigidTransform leftFootCalculated, rightFootCalculated;
 
@@ -47,8 +54,6 @@ public class CharacterAnimator : MonoBehaviour
         animator = GetComponent<Animator>();
         leftFootInit.SetTransformFromBone(animator, HumanBodyBones.LeftFoot);
         rightFootInit.SetTransformFromBone(animator,HumanBodyBones.RightFoot);
-        leftToesInit.SetTransformFromBone(animator,HumanBodyBones.LeftToes);
-        rightToesInit.SetTransformFromBone(animator,HumanBodyBones.RightToes);
 
         /*
         leftFootInit.pos -= kcc.transform.position;
@@ -69,14 +74,22 @@ public class CharacterAnimator : MonoBehaviour
     {
         leftFootBone.SetTransformFromBone(animator, HumanBodyBones.LeftFoot, leftFootInit.rot);
         rightFootBone.SetTransformFromBone(animator, HumanBodyBones.RightFoot, rightFootInit.rot);
-        leftToesBone.SetTransformFromBone(animator, HumanBodyBones.LeftToes, leftToesInit.rot);
-        rightToesBone.SetTransformFromBone(animator, HumanBodyBones.RightToes, rightToesInit.rot);
+        leftFootBoneOS.SetLocalTransformFromBone(animator, HumanBodyBones.LeftFoot, transform.parent);
+        rightFootBoneOS.SetLocalTransformFromBone(animator, HumanBodyBones.RightFoot, transform.parent);
 
-        bool isLeftFootHit = Physics.Raycast(Vector3.ProjectOnPlane(leftFootBone.pos, kcc.Up) + Vector3.Project(kcc.transform.position, kcc.Up) + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitLeftFoot, 1.5f, kcc.WhatIsGround);
-        bool isRightFootHit = Physics.Raycast(Vector3.ProjectOnPlane(rightFootBone.pos, kcc.Up) + Vector3.Project(kcc.transform.position, kcc.Up) + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitRightFoot, 1.5f, kcc.WhatIsGround);
-        bool isLeftToesHit = Physics.Raycast(leftFootBone.pos + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitLeftToes, 1f, kcc.WhatIsGround);
-        bool isRightToesHit = Physics.Raycast(rightFootBone.pos + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitRightToes, 1f, kcc.WhatIsGround);
-        Debug.DrawLine(Vector3.ProjectOnPlane(leftFootBone.pos, kcc.Up), Vector3.ProjectOnPlane(rightFootBone.pos, kcc.Up), Color.white);
+        Debug.DrawRay(leftFootBone.pos, (leftFootBone.pos - leftFootBonePosBefore) / Time.deltaTime, Color.white);
+        Debug.DrawRay(rightFootBone.pos, (rightFootBone.pos - rightFootBonePosBefore) / Time.deltaTime, Color.white);
+
+        bool isLeftFootTargetHit = Physics.Raycast(leftFootBone.pos, (leftFootBone.pos - leftFootBonePosBefore).normalized, out RaycastHit TargetHitL, 1f, kcc.WhatIsGround);
+        bool isRightFootTargetHit = Physics.Raycast(rightFootBone.pos, (rightFootBone.pos - rightFootBonePosBefore).normalized, out RaycastHit TargetHitR, 1f, kcc.WhatIsGround);
+
+        Debug.DrawRay(TargetHitL.point, TargetHitL.normal, Color.white);
+        Debug.DrawRay(TargetHitR.point, TargetHitR.normal, Color.white);
+
+        bool isLeftFootHit = Physics.Raycast(Vector3.ProjectOnPlane(leftFootBone.pos, kcc.Up) + Vector3.Project(kcc.transform.position, kcc.Up) + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitLeftFoot, 0.6f, kcc.WhatIsGround);
+        bool isRightFootHit = Physics.Raycast(Vector3.ProjectOnPlane(rightFootBone.pos, kcc.Up) + Vector3.Project(kcc.transform.position, kcc.Up) + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitRightFoot, 0.6f, kcc.WhatIsGround);
+
+        //Debug.DrawLine(Vector3.ProjectOnPlane(leftFootBone.pos, kcc.Up), Vector3.ProjectOnPlane(rightFootBone.pos, kcc.Up), Color.white);
 
         if (isLeftFootHit) {
             if (isRightFootHit) {
@@ -96,8 +109,9 @@ public class CharacterAnimator : MonoBehaviour
         
 
         if (isLeftFootHit) {
-            Debug.DrawRay(leftFootBone.pos + kcc.Up * 0.5f, -kcc.Up, Color.white);
-            Debug.DrawRay(hitLeftFoot.point, hitLeftFoot.normal, Color.blue);
+            Debug.DrawRay(leftFootBone.pos + kcc.Up * 0.5f, -kcc.Up, transform.InverseTransformPoint(leftFootBone.pos).y < 0.12f ? Color.white : Color.black);
+            Debug.Log(transform.InverseTransformPoint(leftFootBone.pos));
+            Debug.DrawRay(hitLeftFoot.point, hitLeftFoot.normal, transform.InverseTransformPoint(leftFootBone.pos).y < 0.12f ? Color.white : Color.black);
             leftFootCalculated.pos = hitLeftFoot.point + transform.InverseTransformPoint(leftFootBone.pos).y * kcc.Up / Vector3.Dot(kcc.Up, hitLeftFoot.normal);
             leftFootCalculated.rot = Quaternion.FromToRotation(kcc.Up, hitLeftFoot.normal) * leftFootBone.rot;
 
@@ -111,8 +125,8 @@ public class CharacterAnimator : MonoBehaviour
         }
 
         if (isRightFootHit) {
-            Debug.DrawRay(rightFootBone.pos + kcc.Up * 0.5f, -kcc.Up, Color.white);
-            Debug.DrawRay(hitRightFoot.point, hitRightFoot.normal, Color.blue);
+            Debug.DrawRay(rightFootBone.pos + kcc.Up * 0.5f, -kcc.Up, transform.InverseTransformPoint(rightFootBone.pos).y < 0.12f ? Color.white : Color.black);
+            Debug.DrawRay(hitRightFoot.point, hitRightFoot.normal, transform.InverseTransformPoint(rightFootBone.pos).y < 0.12f ? Color.white : Color.black);
             rightFootCalculated.pos = hitRightFoot.point + transform.InverseTransformPoint(rightFootBone.pos).y * kcc.Up / Vector3.Dot(kcc.Up, hitRightFoot.normal);
             rightFootCalculated.rot = Quaternion.FromToRotation(kcc.Up, hitRightFoot.normal) * rightFootBone.rot;
 
@@ -126,7 +140,8 @@ public class CharacterAnimator : MonoBehaviour
         }
         animator.SetFloat("Speed", kcc.Speed);
         
-
+        leftFootBonePosBefore = leftFootBone.pos;
+        rightFootBonePosBefore = rightFootBone.pos;
         
     }
 }
