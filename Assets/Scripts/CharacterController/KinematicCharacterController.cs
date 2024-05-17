@@ -9,11 +9,11 @@ public class KinematicCharacterController : MonoBehaviour
     #region Variables
 
     //[Header("Components")]
-    [SerializeField] private Rigidbody _rb;
+    [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] private CapsuleCollider _capsuleCollider;
 
     [SerializeField] private Vector3 _viewDirection = Vector3.forward;
-    public Rigidbody Rigidbody => _rb;
+    public new Rigidbody rigidbody => _rigidbody;
     public Vector3 ViewDirection { get => _viewDirection; set => _viewDirection = value; }
     public void SetViewDirection(Vector3 dir) => _viewDirection = dir;
 
@@ -101,14 +101,22 @@ public class KinematicCharacterController : MonoBehaviour
     private float _playerHeightWS;
 
     private Vector3 _horizontalDisplacement, _verticalDisplacement;
-    public Vector3 Displacement => _horizontalDisplacement + _verticalDisplacement;
-    public Vector3 Velocity => Displacement / Time.fixedDeltaTime;
-    public Vector3 HorizontalDirection => _horizontalDisplacement;
-    public float Speed => _horizontalDisplacement.magnitude / Time.fixedDeltaTime;
+    private Vector3 _displacement;
+    public Vector3 Displacement => _displacement;
+    public Vector3 Velocity => _displacement / Time.fixedDeltaTime;
+    public Vector3 HorizontalVelocity => _horizontalDisplacement / Time.fixedDeltaTime;
+    public Vector3 VerticalVelocity => _verticalDisplacement / Time.fixedDeltaTime;
 
+    public Vector3 HorizontalDirection => _horizontalDisplacement - ExternalGroundMove * Time.fixedDeltaTime;
+    public float Speed => HorizontalDirection.magnitude / Time.fixedDeltaTime;
+
+    private Vector3 _externalGroundMove;
+    private Vector3 _externalAcceleration;
     private Vector3 _externalVelocity;
     private Vector3 _externalPosition;
     private bool _isPositionSet;
+
+    public Vector3 ExternalGroundMove {get => _externalGroundMove; set => _externalGroundMove = value; }
 
     private Vector3 _nextPositionWS;
 
@@ -133,12 +141,12 @@ public class KinematicCharacterController : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        _rb = GetComponent<Rigidbody>();
+        _rigidbody = GetComponent<Rigidbody>();
         _capsuleCollider = GetComponentInChildren<CapsuleCollider>();
 
-        _rb.detectCollisions = true;
-        _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        _rb.isKinematic = true;
+        _rigidbody.detectCollisions = true;
+        _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        _rigidbody.isKinematic = true;
 
         _height = new Float(_idleHeight);
         _radius = new Float(_capsuleRadius);
@@ -249,9 +257,14 @@ public class KinematicCharacterController : MonoBehaviour
         else _jumpVelocityWS = _jumpVelocityOS;
 
         _moveVelocityWS = (_moveVelocityTS - Vector3.Dot(_groundNormal, _moveVelocityTS) / Vector3.Dot(_groundNormal, -gravityDirection) * (-gravityDirection)).normalized * _moveVelocityTS.magnitude;
+        _moveVelocityWS += _externalGroundMove;
 
+        //_jumpVelocityWS += _externalAcceleration;
+        //_externalVelocity = Vector3.zero;
+
+        _externalVelocity += _externalAcceleration * Time.fixedDeltaTime;
+        _externalVelocity *= Mathf.Exp(-Time.fixedDeltaTime);
         _jumpVelocityWS += _externalVelocity;
-        _externalVelocity = Vector3.zero;
         _playerHeightWS = _playerHeightOS * transform.localScale.y;
     }
 
@@ -259,35 +272,30 @@ public class KinematicCharacterController : MonoBehaviour
     {
         if (_isPositionSet) {
             _jumpVelocityWS = _jumpVelocityOS = _gravity * Time.fixedDeltaTime * 0.5f;
-            _rb.MovePosition(_externalPosition);
+            _rigidbody.MovePosition(_externalPosition);
             _isPositionSet = false;
             return;
         }
 
         _groundedDepth = 0;
 
-        _horizontalDisplacement = CollideAndSlide(_moveVelocityWS * Time.fixedDeltaTime, _rb.position + _height.Value * _playerUp.normalized * 0.5f, 0, false);
-        _verticalDisplacement = CollideAndSlide(_jumpVelocityWS * Time.fixedDeltaTime, _rb.position + _height.Value * _playerUp.normalized * 0.5f + _horizontalDisplacement, 0, true);
+        _horizontalDisplacement = CollideAndSlide(_moveVelocityWS * Time.fixedDeltaTime, _rigidbody.position + _height.Value * _playerUp.normalized * 0.5f, 0, false);
+        _verticalDisplacement = CollideAndSlide(_jumpVelocityWS * Time.fixedDeltaTime, _rigidbody.position + _height.Value * _playerUp.normalized * 0.5f + _horizontalDisplacement, 0, true);
+        Debug.DrawRay(transform.position, _moveVelocityWS * 10f, Color.green);
+        Debug.DrawRay(transform.position, _jumpVelocityWS * 10f, Color.red);
 
-        Debug.DrawRay(_rb.position, _horizontalDisplacement, Color.green, 1f);
-        Debug.DrawRay(_rb.position + _horizontalDisplacement, _verticalDisplacement, Color.red, 1f);
+        Debug.DrawRay(_rigidbody.position, _horizontalDisplacement, Color.green, 1f);
+        Debug.DrawRay(_rigidbody.position + _horizontalDisplacement, _verticalDisplacement, Color.red, 1f);
 
         if (!_isGrounded && _isGroundedBefore) {
             groundExitDisplacement = _verticalDisplacement + Vector3.Dot(_horizontalDisplacement, gravityDirection) * gravityDirection;
         }
 
-        _nextPositionWS = _horizontalDisplacement + _verticalDisplacement + _rb.position;
+        _displacement = _horizontalDisplacement + _verticalDisplacement;
+        _nextPositionWS = _displacement + _rigidbody.position;
         
-        /*
-        float _externalForceEffectAmount;
-        if (_externalVelocity.magnitude != 0)
-            _externalForceEffectAmount = Vector3.Dot(_horizontalDisplacement + _verticalDisplacement, _externalVelocity.normalized) / (_externalVelocity.magnitude * Time.fixedDeltaTime);
-        else _externalForceEffectAmount = 0f;
-
-        _externalVelocity *= Mathf.Clamp01(_externalForceEffectAmount);
-        */
-
-        _rb.MovePosition(_nextPositionWS);
+        _rigidbody.MovePosition(_nextPositionWS);
+        Debug.DrawRay(transform.position, Velocity, Color.white);
     }
 
     private Vector3 CollideAndSlide(Vector3 vel, Vector3 pos, int depth, bool gravityPass, Vector3 velInit = default)
@@ -445,7 +453,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     #region Public Methods
         public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force) {
-            _externalVelocity += force / _rb.mass * Time.fixedDeltaTime;
+            _externalAcceleration = force / _rigidbody.mass;
         }
 
         public void SetPosition(Vector3 position) {

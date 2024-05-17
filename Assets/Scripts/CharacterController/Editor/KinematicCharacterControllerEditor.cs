@@ -201,8 +201,8 @@ public class KinematicCharacterControllerEditor : Editor
 
     void OnEnable()
     {
-        rigidbody = serializedObject.FindProperty("_rb");
-        collider = serializedObject.FindProperty("_characterCollider");
+        rigidbody = serializedObject.FindProperty("_rigidbody");
+        collider = serializedObject.FindProperty("_capsuleCollider");
 
         capsuleRadius = serializedObject.FindProperty("_capsuleRadius");
         capsuleHeight = serializedObject.FindProperty("_idleHeight");

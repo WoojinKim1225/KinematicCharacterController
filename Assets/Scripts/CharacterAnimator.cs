@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 [System.Serializable]
 public struct RigidTransform {
@@ -41,107 +43,100 @@ public class CharacterAnimator : MonoBehaviour
 
     private Vector3 velocity => kcc.Velocity;
 
-    private RigidTransform leftFootInit, rightFootInit;
+    private RigidTransform FootInit_l, FootInit_r;
 
-    [SerializeField] private RigidTransform leftFootBone, rightFootBone, leftFootBoneOS, rightFootBoneOS;
+    [SerializeField] private Vector3 solePoint_l;
+    [SerializeField] private Vector3 solePoint_r;
+    [SerializeField] private Vector3 solePointFromFoot_l;
+    [SerializeField] private Vector3 solePointFromFoot_r;
 
-    private Vector3 leftFootBonePosBefore, rightFootBonePosBefore;
+    private Vector3 solePointOS_l, solePointOS_r;
+    private float playerUpAmount, playerUpAmountSmooth;
 
-    private RigidTransform leftFootCalculated, rightFootCalculated;
+    private Vector3 solePointWS_l, solePointWS_r;
+
+    private float rayStartUpDist = 1f, rayEndDownDist = 1f;
+
+    private bool isStepStart_l, isStepStart_r;
+
+    [SerializeField] private RigidTransform FootBone_l, FootBone_r;
 
     void Awake()
     {
         animator = GetComponent<Animator>();
-        leftFootInit.SetTransformFromBone(animator, HumanBodyBones.LeftFoot);
-        rightFootInit.SetTransformFromBone(animator,HumanBodyBones.RightFoot);
+        FootInit_l.SetTransformFromBone(animator, HumanBodyBones.LeftFoot);
+        
+        FootInit_r.SetTransformFromBone(animator,HumanBodyBones.RightFoot);
 
-        /*
-        leftFootInit.pos -= kcc.transform.position;
-        rightFootInit.pos -= kcc.transform.position;
-        leftToesInit.pos -= kcc.transform.position;
-        rightToesInit.pos -= kcc.transform.position;
-        */
+        solePointFromFoot_l = animator.GetBoneTransform(HumanBodyBones.LeftFoot).InverseTransformPoint(animator.transform.TransformPoint(solePoint_l));
+        solePointFromFoot_r = animator.GetBoneTransform(HumanBodyBones.RightFoot).InverseTransformPoint(animator.transform.TransformPoint(solePoint_r));
     }
 
     void LateUpdate()
     {
-        animator.transform.parent.position = kcc.transform.position;
-        if (Vector3.ProjectOnPlane(kcc.HorizontalDirection, kcc.Up) != Vector3.zero) animator.transform.parent.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(kcc.HorizontalDirection, kcc.Up), kcc.Up);
+        
+        if (Vector3.ProjectOnPlane(kcc.HorizontalDirection, kcc.Up) != Vector3.zero) animator.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(kcc.HorizontalDirection, kcc.Up), kcc.Up);
+        animator.SetFloat("Speed", kcc.Speed);
     }
 
+    private void OnAnimatorIK(int layerIndex) {
+        animator.transform.position = kcc.transform.position;
+        FootBone_l.SetTransformFromBone(animator, HumanBodyBones.LeftFoot);
+        FootBone_r.SetTransformFromBone(animator, HumanBodyBones.RightFoot);
 
-    void OnAnimatorIK(int layerIndex)
-    {
-        leftFootBone.SetTransformFromBone(animator, HumanBodyBones.LeftFoot, leftFootInit.rot);
-        rightFootBone.SetTransformFromBone(animator, HumanBodyBones.RightFoot, rightFootInit.rot);
-        leftFootBoneOS.SetLocalTransformFromBone(animator, HumanBodyBones.LeftFoot, transform.parent);
-        rightFootBoneOS.SetLocalTransformFromBone(animator, HumanBodyBones.RightFoot, transform.parent);
+        solePointWS_l = FootBone_l.pos + FootBone_l.rot * solePointFromFoot_l;
+        solePointWS_r = FootBone_r.pos + FootBone_r.rot * solePointFromFoot_r;
+        solePointOS_l = transform.InverseTransformPoint(solePointWS_l);
+        solePointOS_r = transform.InverseTransformPoint(solePointWS_r);
+        
+        Ray ray_l = new Ray(solePointWS_l + kcc.Up * rayStartUpDist, -kcc.Up);
+        bool isFootHit_l = Physics.Raycast(ray_l, out RaycastHit h_l, rayStartUpDist + rayEndDownDist, kcc.WhatIsGround, QueryTriggerInteraction.Ignore);
 
-        Debug.DrawRay(leftFootBone.pos, (leftFootBone.pos - leftFootBonePosBefore) / Time.deltaTime, Color.white);
-        Debug.DrawRay(rightFootBone.pos, (rightFootBone.pos - rightFootBonePosBefore) / Time.deltaTime, Color.white);
-
-        bool isLeftFootTargetHit = Physics.Raycast(leftFootBone.pos, (leftFootBone.pos - leftFootBonePosBefore).normalized, out RaycastHit TargetHitL, 1f, kcc.WhatIsGround);
-        bool isRightFootTargetHit = Physics.Raycast(rightFootBone.pos, (rightFootBone.pos - rightFootBonePosBefore).normalized, out RaycastHit TargetHitR, 1f, kcc.WhatIsGround);
-
-        Debug.DrawRay(TargetHitL.point, TargetHitL.normal, Color.white);
-        Debug.DrawRay(TargetHitR.point, TargetHitR.normal, Color.white);
-
-        bool isLeftFootHit = Physics.Raycast(Vector3.ProjectOnPlane(leftFootBone.pos, kcc.Up) + Vector3.Project(kcc.transform.position, kcc.Up) + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitLeftFoot, 0.6f, kcc.WhatIsGround);
-        bool isRightFootHit = Physics.Raycast(Vector3.ProjectOnPlane(rightFootBone.pos, kcc.Up) + Vector3.Project(kcc.transform.position, kcc.Up) + kcc.Up * 0.5f, -kcc.Up, out RaycastHit hitRightFoot, 0.6f, kcc.WhatIsGround);
-
-        //Debug.DrawLine(Vector3.ProjectOnPlane(leftFootBone.pos, kcc.Up), Vector3.ProjectOnPlane(rightFootBone.pos, kcc.Up), Color.white);
-
-        if (isLeftFootHit) {
-            if (isRightFootHit) {
-                animator.transform.localPosition = Vector3.up * Mathf.Min(-hitLeftFoot.distance + 0.5f, -hitRightFoot.distance + 0.5f);
-            } else {
-                animator.transform.localPosition = Vector3.up * (-hitLeftFoot.distance + 0.5f);
-            }
-        }
-        else {
-            if (isRightFootHit) {
-                animator.transform.localPosition = Vector3.up * (-hitRightFoot.distance + 0.5f);
-            } else {
-                animator.transform.localPosition = Vector3.zero;
-            }
-        }
+        Ray ray_r = new Ray(solePointWS_r + kcc.Up * rayStartUpDist, -kcc.Up);
+        bool isFootHit_r = Physics.Raycast(ray_r, out RaycastHit h_r, rayStartUpDist + rayEndDownDist, kcc.WhatIsGround, QueryTriggerInteraction.Ignore);
 
         
+        if (isFootHit_l && isFootHit_r) playerUpAmount = -Mathf.Max(Vector3.Dot(kcc.transform.position - h_l.point, kcc.Up), Vector3.Dot(kcc.transform.position - h_r.point, kcc.Up));
+        else playerUpAmount = 0f;
 
-        if (isLeftFootHit) {
-            Debug.DrawRay(leftFootBone.pos + kcc.Up * 0.5f, -kcc.Up, transform.InverseTransformPoint(leftFootBone.pos).y < 0.12f ? Color.white : Color.black);
-            Debug.Log(transform.InverseTransformPoint(leftFootBone.pos));
-            Debug.DrawRay(hitLeftFoot.point, hitLeftFoot.normal, transform.InverseTransformPoint(leftFootBone.pos).y < 0.12f ? Color.white : Color.black);
-            leftFootCalculated.pos = hitLeftFoot.point + transform.InverseTransformPoint(leftFootBone.pos).y * kcc.Up / Vector3.Dot(kcc.Up, hitLeftFoot.normal);
-            leftFootCalculated.rot = Quaternion.FromToRotation(kcc.Up, hitLeftFoot.normal) * leftFootBone.rot;
+        playerUpAmountSmooth += (playerUpAmount - playerUpAmountSmooth) * Time.fixedDeltaTime * 20f;
+        
+        animator.transform.position = kcc.transform.position + kcc.Up * playerUpAmountSmooth;
 
-            animator.SetIKPosition(AvatarIKGoal.LeftFoot, leftFootCalculated.pos);
-            animator.SetIKRotation(AvatarIKGoal.LeftFoot, leftFootCalculated.rot);
+        
+        if (isFootHit_l) {
+            Vector3 p = h_l.point - Quaternion.FromToRotation(kcc.Up, h_l.normal) * FootBone_l.rot * solePointFromFoot_l + Vector3.Project(solePointOS_l, kcc.Up);
+            Quaternion q = Quaternion.FromToRotation(kcc.Up, h_l.normal) * (FootBone_l.rot * Quaternion.Inverse(FootInit_l.rot));
+
+            animator.SetIKPosition(AvatarIKGoal.LeftFoot, p);
+            animator.SetIKRotation(AvatarIKGoal.LeftFoot, q);
             animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1);
             animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 1);
+            //animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, Mathf.Clamp01(1f - Vector3.Dot(animator.transform.position - h_l.point, kcc.Up) * 2f));
+            //animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, Mathf.Clamp01(1f - Vector3.Dot(animator.transform.position - h_l.point, kcc.Up) * 2f));
         } else {
             animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 0);
             animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 0);
         }
 
-        if (isRightFootHit) {
-            Debug.DrawRay(rightFootBone.pos + kcc.Up * 0.5f, -kcc.Up, transform.InverseTransformPoint(rightFootBone.pos).y < 0.12f ? Color.white : Color.black);
-            Debug.DrawRay(hitRightFoot.point, hitRightFoot.normal, transform.InverseTransformPoint(rightFootBone.pos).y < 0.12f ? Color.white : Color.black);
-            rightFootCalculated.pos = hitRightFoot.point + transform.InverseTransformPoint(rightFootBone.pos).y * kcc.Up / Vector3.Dot(kcc.Up, hitRightFoot.normal);
-            rightFootCalculated.rot = Quaternion.FromToRotation(kcc.Up, hitRightFoot.normal) * rightFootBone.rot;
+        if (isFootHit_r) {
+            Vector3 p = h_r.point - Quaternion.FromToRotation(kcc.Up, h_r.normal) * FootBone_r.rot * solePointFromFoot_r + Vector3.Project(solePointOS_r, kcc.Up);
+            Quaternion q = Quaternion.FromToRotation(kcc.Up, h_r.normal) * (FootBone_r.rot * Quaternion.Inverse(FootInit_r.rot));
 
-            animator.SetIKPosition(AvatarIKGoal.RightFoot, rightFootCalculated.pos);
-            animator.SetIKRotation(AvatarIKGoal.RightFoot, rightFootCalculated.rot);
+            animator.SetIKPosition(AvatarIKGoal.RightFoot, p);
+            animator.SetIKRotation(AvatarIKGoal.RightFoot, q);
             animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1);
             animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1);
+            //animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, Mathf.Clamp01(1f - Vector3.Dot(animator.transform.position - h_l.point, kcc.Up) * 2f));
+            //animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, Mathf.Clamp01(1f - Vector3.Dot(animator.transform.position - h_l.point, kcc.Up) * 2f));
         } else {
             animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 0);
             animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 0);
         }
-        animator.SetFloat("Speed", kcc.Speed);
         
-        leftFootBonePosBefore = leftFootBone.pos;
-        rightFootBonePosBefore = rightFootBone.pos;
-        
+
+        Debug.DrawLine(animator.transform.position, solePointWS_l, Color.white);
+        Debug.DrawLine(animator.transform.position, solePointWS_r, Color.white);
+
     }
 }

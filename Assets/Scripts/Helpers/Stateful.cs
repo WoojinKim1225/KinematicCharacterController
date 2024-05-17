@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 namespace StatefulVariables // Assuming your ReferenceManager class is in this namespace
@@ -131,6 +128,56 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
             _beforeValue = _value;
             _value = _initialValue;
             _isChanged = _beforeValue != _value;
+        }
+    }
+
+    [System.Serializable]
+    public class Stateful<T> {
+        [SerializeField] private T _value;
+        [SerializeField] private bool _isChanged;
+        [SerializeField] private T _beforeValue;
+        [SerializeField] private T _initialValue;
+
+        public T Value { get => _value; set => _value = value; }
+        public System.Type Type => _value.GetType();
+        public bool IsChanged => _isChanged;
+
+        public T InitialValue { get => _initialValue; set => _initialValue = value; }
+
+        public Stateful(T v)
+        {
+            _value = v;
+            _beforeValue = v;
+            _initialValue = v;
+            _isChanged = false;
+        }
+
+        public void OnUpdate(T v)
+        {
+            _value = v;
+            _isChanged = _beforeValue.Equals(_value);
+            _beforeValue = _value;
+        }
+
+        public void OnUpdate()
+        {
+            _isChanged = _beforeValue.Equals(_value);
+            _beforeValue = _value;
+        }
+
+        public void Reset()
+        {
+            _isChanged = false;
+            _beforeValue = _initialValue;
+            _value = _initialValue;
+        }
+
+        public void Reset(T v)
+        {
+            _value = v;
+            _beforeValue = v;
+            _initialValue = v;
+            _isChanged = false;
         }
     }
 }
