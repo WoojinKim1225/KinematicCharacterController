@@ -13,6 +13,7 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
         public float Value { get => _value; set => _value = value; }
 
         public bool IsChanged => _isChanged;
+        public float BeforeValue => _beforeValue;
 
         public float InitialValue { get => _initialValue; set => _initialValue = value; }
 
