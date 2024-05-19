@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 997214203914713587}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -54,7 +54,7 @@ CapsuleCollider:
   m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2760921626897008889
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,20 +162,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35013d68abd0e69439f47fdc77ee1929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveReference: {fileID: -5114764600897907175, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
-  _jumpReference: {fileID: -2101542654031946695, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
-  _crouchReference: {fileID: 2545485967095024656, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
-  _sprintReference: {fileID: 6430348378485783799, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
-  _rb: {fileID: 0}
-  _characterCollider: {fileID: 0}
+  _rigidbody: {fileID: 0}
+  _capsuleCollider: {fileID: 0}
   _viewDirection: {x: 0, y: 0, z: 1}
   _moveSpeed: 4
   _jumpSpeed: 10
   _jumpMaxHeight: 2.5
   _sprintSpeedMultiplier: 2
+  _crouchSpeedMultiplier: 0.5
   _maxAirJumpCount: 5
-  _speedControlMode: 0
-  _moveAcceleration: 10
+  _speedControlMode: 1
+  _movementMode: 0
+  _moveAcceleration: 20
   _moveDamp: 10
   jumpSpeed:
     _value: 0
@@ -195,7 +193,7 @@ MonoBehaviour:
   _skinWidth: 0.01
   _maxBounces: 5
   _gravity: {x: 0, y: -20, z: 0}
-  Gravity:
+  gravity:
     _value: {x: 0, y: 0, z: 0}
     _isChanged: 0
     _beforeValue: {x: 0, y: 0, z: 0}
