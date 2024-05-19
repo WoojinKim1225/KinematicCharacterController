@@ -2,113 +2,87 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
 using StatefulVariables;
-using KinematicCharacterEnum;
+using KinematicCharacterSettings;
 using System.Collections;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 public class KinematicCharacterController : MonoBehaviour
 {
     #region Variables
 
-    //Components
-    [SerializeField] private Rigidbody _rigidbody;
-    [SerializeField] private CapsuleCollider _capsuleCollider;
+    [SerializeField] private ComponentSettings _componentSettings = new ComponentSettings();
 
-    [SerializeField] private Vector3 _viewDirection = Vector3.forward;
-    public new Rigidbody rigidbody => _rigidbody;
-    public Vector3 ViewDirection { get => _viewDirection; set => _viewDirection = value; }
-    public void SetViewDirection(Vector3 dir) => _viewDirection = dir;
+    public new Rigidbody rigidbody => _componentSettings._rigidbody;
+    private Vector3 _rigidbodyPosition => _componentSettings._rigidbody.transform.position;
 
+    /*********************************************************************************************************/
 
-    //Movement Settings
-    [SerializeField] private float _moveSpeed = 4f;
-    [SerializeField] private float _jumpSpeed = 10f;
-    [SerializeField] private float _jumpMaxHeight = 2f;
-    [SerializeField] private float _sprintSpeedMultiplier = 2f;
-    [SerializeField] private float _crouchSpeedMultiplier = 0.5f;
-    [SerializeField] private int _maxAirJumpCount = 5;
+    [SerializeField] private MovementSettings _movementSettings = new MovementSettings();
 
-    
-    [SerializeField] private KinematicCharacterEnumExtensions.ESpeedControlMode _speedControlMode = KinematicCharacterEnumExtensions.ESpeedControlMode.Constant;
-    [SerializeField] private KinematicCharacterEnumExtensions.EMovementMode _movementMode = KinematicCharacterEnumExtensions.EMovementMode.Ground;
-    [SerializeField] private float _moveAcceleration, _moveDamp;
+    public Vector3 ViewDirection { get => _movementSettings._viewDirection; set => _movementSettings._viewDirection = value; }
+    public void SetViewDirection(Vector3 dir) => _movementSettings._viewDirection = dir;
 
-    public float MoveSpeed => _moveSpeed;
-    public KinematicCharacterEnumExtensions.ESpeedControlMode SpeedControlMode => _speedControlMode;
-    public KinematicCharacterEnumExtensions.EMovementMode MovementMode {set => _movementMode = value; }
-    public float JumpMaxHeight => _jumpMaxHeight;
+    public float MoveSpeed => _movementSettings._moveSpeed;
+    public KinematicCharacterSettingExtensions.ESpeedControlMode SpeedControlMode => _movementSettings._speedControlMode;
+    public KinematicCharacterSettingExtensions.EMovementMode MovementMode {set => _movementSettings._movementMode = value; }
+    public float JumpMaxHeight => _movementSettings._jumpMaxHeight;
 
-    [SerializeField] private Float jumpSpeed, jumpMaxHeight;
-    [SerializeField] private Float _airJump;
+    private Float jumpSpeed, jumpMaxHeight;
+    private Float _airJump;
 
-    //Physics Settings
-    [SerializeField] private float _skinWidth = 0.01f;
-    [SerializeField] private int _maxBounces = 5;
-    [SerializeField] private Vector3 _gravity = Vector3.down * 20f;
-    public Vector3 Gravity { set => _gravity = value; }
+    /*********************************************************************************************************/
+
+    [SerializeField] private PhysicsSettings _physicsSettings = new PhysicsSettings();
+
+    private float _skinWidth => _physicsSettings._skinWidth;
+    public Vector3 Gravity {get => _physicsSettings._gravity; set => _physicsSettings._gravity = value; }
 
     public Vector3Stateful gravity;
-    private Vector3 gravityDirection => _gravity.normalized;
-    private Vector3 accelerationDirection => (_gravity + _externalAcceleration).normalized;
+    private Vector3 gravityDirection => _physicsSettings._gravity.normalized;
+    private Vector3 accelerationDirection => (_physicsSettings._gravity + _externalMovementSettings._acceleration).normalized;
 
-    //Character Size
-    [SerializeField] private float _idleHeight = 2f;
-    [SerializeField] private float _crouchHeight = 1.2f;
-    [SerializeField] private float _capsuleRadius = 0.5f;
+    /*********************************************************************************************************/
 
-    public float IdleHeight => _idleHeight;
-    public float CrouchHeight => _crouchHeight;
-    public float CapsuleRadius => _capsuleRadius;
+    [SerializeField] private CharacterSizeSettings _characterSizeSettings = new CharacterSizeSettings();
+
+    public float IdleHeight => _characterSizeSettings._idleHeight;
+    public float CrouchHeight => _characterSizeSettings._crouchHeight;
+    public float CapsuleRadius => _characterSizeSettings._capsuleRadius;
     public float CapsuleHeight => _height.Value;
 
-    [SerializeField] private Float _height, _radius;
+    private Float _height, _radius;
     public float HeightValue => _height.Value;
 
-    //Slope And Step Handling
-    [SerializeField] private float _maxSlopeAngle = 55f;
-    [SerializeField] private float _minCeilingAngle = 130f;
+    /*********************************************************************************************************/
 
-    [SerializeField] private bool _isUpStepEnabled;
-    [SerializeField] private float _maxStepUpHeight = 0.3f;
-    [SerializeField] private bool _isDownStepEnabled;
-    [SerializeField] private float _maxStepDownHeight = -0.3f;
+    [SerializeField] private StepAndSlopeHandleSettings _stepAndSlopeHandleSettings = new StepAndSlopeHandleSettings();
 
-    public float MaxSlopeAngle => _maxSlopeAngle;
-    public bool IsUpStepEnabled {get => _isUpStepEnabled; set => _isUpStepEnabled = value; }
-    public bool IsDownStepEnabled {get => _isDownStepEnabled; set => _isDownStepEnabled = value; }
 
+    public float MaxSlopeAngle => _stepAndSlopeHandleSettings._maxSlopeAngle;
+    public bool IsUpStepEnabled {get => _stepAndSlopeHandleSettings._isUpStepEnabled; set => _stepAndSlopeHandleSettings._isUpStepEnabled = value; }
+    public bool IsDownStepEnabled {get => _stepAndSlopeHandleSettings._isDownStepEnabled; set => _stepAndSlopeHandleSettings._isDownStepEnabled = value; }
 
     private Vector3 _forward, _right;
     public Vector3 Up => _playerUp.normalized;
     public Vector3 Forward => _forward;
     public Vector3 Right => _right;
 
-    private Vector2 _moveVelocityIS;
-    private float _jumpVelocityIS;
-    private float _crouchInputIS;
-    private float _sprintInputIS;
+    private Coordinate<Vector2, Vector3, Vector3, Vector3> _moveVelocity;
+    private Coordinate<Float, Vector3, Null, Vector3> _jumpVelocity;
+    private Coordinate<float, float, Null, float> _playerHeight;
+    private Coordinate<float, Null, Null, Null> _sprintInput;
+    
+    public Vector3 MoveVelocityIS { set => _moveVelocity.IS = value; }
+    public float JumpVelocityIS { set => _jumpVelocity.IS.Value = value; }
+    public float SprintInputIS { set => _sprintInput.IS = value; }
+    public float PlayerHeightIS { set => _playerHeight.IS = value; }
 
-    public Vector3 MoveVelocityIS { set => _moveVelocityIS = value; }
-    public float JumpVelocityIS { set => _jumpVelocityIS = value; }
-    public float SprintInputIS { set => _sprintInputIS = value; }
-    public float CrouchInputIS { set => _crouchInputIS = value; }
-
-    private float _jumpVelocityISBefore;
-    private bool _isJumpStarted => _jumpVelocityIS != 0 && _jumpVelocityISBefore == 0;
-
-    private Vector3 _moveVelocityOS;
-    private Vector3 _jumpVelocityOS;
-    private float _playerHeightOS;
-
-    private Vector3 _moveVelocityTS;
-
-    private Vector3 _moveVelocityWS;
-    private Vector3 _moveVelocityTargetWS;
-    private Vector3 _jumpVelocityWS;
-    private float _playerHeightWS;
+    private bool _isJumpStarted => _jumpVelocity.IS.Value != 0 && _jumpVelocity.IS.BeforeValue == 0;
 
     private Vector3 _horizontalDisplacement, _verticalDisplacement;
     private Vector3 _displacement;
+
     public Vector3 Displacement => _displacement;
     public Vector3 Velocity => _displacement / Time.fixedDeltaTime;
     public Vector3 HorizontalVelocity => _horizontalDisplacement / Time.fixedDeltaTime;
@@ -117,13 +91,9 @@ public class KinematicCharacterController : MonoBehaviour
     public Vector3 HorizontalDirection => _horizontalDisplacement - ExternalGroundMove * Time.fixedDeltaTime;
     public float Speed => HorizontalDirection.magnitude / Time.fixedDeltaTime;
 
-    private Vector3 _externalGroundMove;
-    private Vector3 _externalAcceleration;
-    private Vector3 _externalVelocity;
-    private Vector3 _externalPosition;
-    private bool _isPositionSet;
+    [SerializeField] private ExternalMovementSettings _externalMovementSettings = new ExternalMovementSettings();
 
-    public Vector3 ExternalGroundMove { get => _externalGroundMove; set => _externalGroundMove = value; }
+    public Vector3 ExternalGroundMove { get => _externalMovementSettings._groundMove; set => _externalMovementSettings._groundMove = value; }
 
     private Vector3 _nextPositionWS;
 
@@ -136,12 +106,13 @@ public class KinematicCharacterController : MonoBehaviour
     [SerializeField] private Vector3 _playerUp = Vector3.up;
 
     private RaycastHit hit;
-    [SerializeField] private LayerMask _whatIsGround;
+    [SerializeField] private LayerMask _whatIsGround = Physics.AllLayers;
     public LayerMask WhatIsGround => _whatIsGround;
     private Vector3 groundExitDisplacement;
 
     private bool _isStep;
-    private QueryTriggerInteraction queryTrigger = QueryTriggerInteraction.Ignore;
+    readonly QueryTriggerInteraction queryTrigger = QueryTriggerInteraction.Ignore;
+    readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
     #endregion
 
     void Awake()
@@ -149,18 +120,18 @@ public class KinematicCharacterController : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        _rigidbody = GetComponent<Rigidbody>();
-        _capsuleCollider = GetComponentInChildren<CapsuleCollider>();
+        _componentSettings._rigidbody = GetComponent<Rigidbody>();
+        _componentSettings._capsuleCollider = GetComponentInChildren<CapsuleCollider>();
 
-        _rigidbody.detectCollisions = true;
-        _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        _rigidbody.isKinematic = true;
+        _componentSettings._rigidbody.detectCollisions = true;
+        _componentSettings._rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        _componentSettings._rigidbody.isKinematic = true;
 
         InitStateful();
 
-        _capsuleCollider.bounds.Expand(-2 * _skinWidth);
-        _capsuleCollider.height = _height.Value - 2 * _skinWidth;
-        _capsuleCollider.radius = _radius.Value - _skinWidth;
+        _componentSettings._capsuleCollider.bounds.Expand(-2 * _physicsSettings._skinWidth);
+        _componentSettings._capsuleCollider.height = _height.Value - 2 * _physicsSettings._skinWidth;
+        _componentSettings._capsuleCollider.radius = _radius.Value - _physicsSettings._skinWidth;
     }
 
     void Update()
@@ -172,8 +143,7 @@ public class KinematicCharacterController : MonoBehaviour
     {
         if (_isGrounded) _airJump.Value = _airJump.InitialValue;
 
-        _capsuleCollider.transform.up = _playerUp.normalized;
-
+        _componentSettings._capsuleCollider.transform.up = _playerUp.normalized;
 
         CalculateObjectSpaceVariables();
 
@@ -186,35 +156,34 @@ public class KinematicCharacterController : MonoBehaviour
         beforeWallNormal = Vector3.zero;
 
         HandleCollisionsAndMovement();
-
-        _jumpVelocityISBefore = _jumpVelocityIS;
     }
 
     #region Private Methods
 
     private void InitStateful() {
-        _height = new Float(_idleHeight);
-        _radius = new Float(_capsuleRadius);
+        _height = new Float(IdleHeight);
+        _radius = new Float(CapsuleRadius);
 
-        jumpSpeed = new Float(_jumpSpeed);
-        jumpMaxHeight = new Float(Mathf.Sqrt(_jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y)));
-        _jumpMaxHeight = _jumpSpeed * _jumpSpeed * 0.5f / Mathf.Abs(_gravity.y);
+        jumpSpeed = new Float(_movementSettings._jumpSpeed);
+        jumpMaxHeight = new Float(Mathf.Sqrt(_movementSettings._jumpSpeed * _movementSettings._jumpSpeed * 0.5f / Mathf.Abs(Gravity.y)));
+        _movementSettings._jumpMaxHeight = _movementSettings._jumpSpeed * _movementSettings._jumpSpeed * 0.5f / Mathf.Abs(Gravity.y);
 
-        _airJump = new Float(_maxAirJumpCount);
+        _airJump = new Float(_movementSettings._maxAirJumpCount);
 
-        gravity = new Vector3Stateful(_gravity);
+        gravity = new Vector3Stateful(Gravity);
+        _jumpVelocity.IS = new Float(0);
     }
 
     private void GetDirectionsFromView()
     {
-        switch (_movementMode)
+        switch (_movementSettings._movementMode)
         {
-            case KinematicCharacterEnumExtensions.EMovementMode.Ground:
-                _forward = Vector3.ProjectOnPlane(_viewDirection, -gravityDirection).normalized;
+            case KinematicCharacterSettingExtensions.EMovementMode.Ground:
+                _forward = Vector3.ProjectOnPlane(_movementSettings._viewDirection, -gravityDirection).normalized;
                 _right = Vector3.Cross(-gravityDirection, _forward);
                 break;
-            case KinematicCharacterEnumExtensions.EMovementMode.Swim:
-                _forward = _viewDirection.normalized;
+            case KinematicCharacterSettingExtensions.EMovementMode.Swim:
+                _forward = _movementSettings._viewDirection.normalized;
                 _right = Vector3.Cross(-gravityDirection, _forward);
                 break;
         }
@@ -222,142 +191,113 @@ public class KinematicCharacterController : MonoBehaviour
 
     private void CalculateObjectSpaceVariables()
     {
-        _jumpVelocityOS = _isGrounded && _jumpVelocityIS > 0 ? _jumpSpeed * (-gravityDirection) : Vector3.zero;
-        //if (_jumpVelocityOS == _jumpSpeed * (-gravityDirection)) Debug.Break();
-        _jumpVelocityOS += _gravity * Time.fixedDeltaTime * 0.5f;
+        _jumpVelocity.OS = _isGrounded && _jumpVelocity.IS.Value > 0 ? _movementSettings._jumpSpeed * (-gravityDirection) : Vector3.zero;
+        _jumpVelocity.OS += Gravity * Time.fixedDeltaTime * 0.5f;
 
-        _playerHeightOS = _crouchInputIS > 0 ? _crouchHeight : _idleHeight;
+        _playerHeight.OS = _playerHeight.IS > 0 ? CrouchHeight : IdleHeight;
 
-        float moveSpeedMultiplier = _crouchInputIS > 0f ? _crouchSpeedMultiplier : (_sprintInputIS > 0 ? _sprintSpeedMultiplier : 1f);
-        _moveVelocityOS = new Vector3(_moveVelocityIS.x, 0, _moveVelocityIS.y) * _moveSpeed * moveSpeedMultiplier;
-        /*
-        switch (_speedControlMode)
+        float moveSpeedMultiplier = _playerHeight.IS > 0f ? _movementSettings._crouchSpeedMultiplier : (_sprintInput.IS > 0 ? _movementSettings._sprintSpeedMultiplier : 1f);
+        Vector3 _moveVelocityTargetOS = new Vector3(_moveVelocity.IS.x, 0, _moveVelocity.IS.y) * _movementSettings._moveSpeed * moveSpeedMultiplier;
+        
+        switch (_movementSettings._speedControlMode)
         {
-            case KinematicCharacterEnumExtensions.ESpeedControlMode.Constant:
-                _moveVelocityOS = _moveVelocityTargetOS;
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
+                _moveVelocity.OS = _moveVelocityTargetOS;
                 break;
-            case KinematicCharacterEnumExtensions.ESpeedControlMode.Linear:
-                if ((_moveVelocityOS - _moveVelocityTargetOS).magnitude < Time.fixedDeltaTime * _moveAcceleration)
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
+                if ((_moveVelocity.OS - _moveVelocityTargetOS).magnitude < Time.fixedDeltaTime * _movementSettings._moveAcceleration)
                 {
-                    _moveVelocityOS = _moveVelocityTargetOS;
+                    _moveVelocity.OS = _moveVelocityTargetOS;
                 }
                 else
                 {
-                    _moveVelocityOS += (_moveVelocityTargetOS - _moveVelocityOS).normalized * Time.fixedDeltaTime * _moveAcceleration;
+                    _moveVelocity.OS += (_moveVelocityTargetOS - _moveVelocity.OS).normalized * Time.fixedDeltaTime * _movementSettings._moveAcceleration;
                 }
                 break;
-            case KinematicCharacterEnumExtensions.ESpeedControlMode.Exponential:
-                if ((_moveVelocityOS - _moveVelocityTargetOS).magnitude < Mathf.Epsilon)
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
+                if ((_moveVelocity.OS - _moveVelocityTargetOS).magnitude < Mathf.Epsilon)
                 {
-                    _moveVelocityOS = _moveVelocityTargetOS;
+                    _moveVelocity.OS = _moveVelocityTargetOS;
                 }
                 else
                 {
-                    _moveVelocityOS += (_moveVelocityTargetOS - _moveVelocityOS) * Time.fixedDeltaTime * _moveDamp;
+                    _moveVelocity.OS += (_moveVelocityTargetOS - _moveVelocity.OS) * Time.fixedDeltaTime * _movementSettings._moveDamp;
                 }
                 break;
             default:
-                _moveVelocityOS = _moveVelocityTargetOS;
+                _moveVelocity.OS = _moveVelocityTargetOS;
                 break;
         }
-        */
+        
     }
 
     private void CalculateTangentSpaceVariables()
     {
-        _moveVelocityTS = _moveVelocityOS.x * _right + _moveVelocityOS.z * _forward;
+        _moveVelocity.TS = _moveVelocity.OS.x * _right + _moveVelocity.OS.z * _forward;
     }
 
     private void CalculateWorldSpaceVariables()
     {
-        
-        if (_externalVelocity != Vector3.zero)
+        if (_externalMovementSettings._velocity != Vector3.zero)
         {
-            _jumpVelocityWS = _externalVelocity;
+            _jumpVelocity.WS = _externalMovementSettings._velocity;
         }
 
         if (!_isGrounded)
         {
             _groundNormal = -gravityDirection;
-            _jumpVelocityWS += _gravity * Time.fixedDeltaTime;
+            _jumpVelocity.WS += Gravity * Time.fixedDeltaTime;
             if (_isJumpStarted && _airJump.Value-- > 0)
             {
-                 _jumpVelocityWS = _jumpVelocityIS * _jumpSpeed * (-gravityDirection) + _gravity * Time.fixedDeltaTime * 0.5f;
+                 _jumpVelocity.WS = _jumpVelocity.IS.Value * _movementSettings._jumpSpeed * (-gravityDirection) + Gravity * Time.fixedDeltaTime * 0.5f;
             }
-            else if (_isGroundedBefore && _jumpVelocityIS == 0 && _jumpVelocityISBefore == 0)
+            else if (_isGroundedBefore && _jumpVelocity.IS.Value == 0 && _jumpVelocity.IS.BeforeValue == 0)
             {
-                _jumpVelocityWS = groundExitDisplacement / Time.fixedDeltaTime;
+                _jumpVelocity.WS = groundExitDisplacement / Time.fixedDeltaTime;
                 groundExitDisplacement = Vector3.zero;
             }
         }
-        else _jumpVelocityWS = _jumpVelocityOS;
+        else _jumpVelocity.WS = _jumpVelocity.OS;
 
-        _jumpVelocityWS += Vector3.Project(_externalAcceleration, gravityDirection) * Time.fixedDeltaTime;
         //Debug.Log(_jumpVelocityWS);
 
 
-        if (_movementMode == KinematicCharacterEnumExtensions.EMovementMode.Ground)
+        if (_movementSettings._movementMode == KinematicCharacterSettingExtensions.EMovementMode.Ground)
         {
-            _moveVelocityTargetWS = (_moveVelocityTS - Vector3.Dot(_groundNormal, _moveVelocityTS) / Vector3.Dot(_groundNormal, -gravityDirection) * (-gravityDirection)).normalized * _moveVelocityTS.magnitude;
+            _moveVelocity.WS = (_moveVelocity.TS - Vector3.Dot(_groundNormal, _moveVelocity.TS) / Vector3.Dot(_groundNormal, -gravityDirection) * (-gravityDirection)).normalized * _moveVelocity.TS.magnitude;
         }
         else
         {
-            _moveVelocityTargetWS = _moveVelocityTS;
+            _moveVelocity.WS = _moveVelocity.TS;
         }
 
-        switch (_speedControlMode)
-        {
-            case KinematicCharacterEnumExtensions.ESpeedControlMode.Constant:
-                _moveVelocityWS = _moveVelocityTargetWS;
-                break;
-            case KinematicCharacterEnumExtensions.ESpeedControlMode.Linear:
-                if ((_moveVelocityWS - _moveVelocityTargetWS).magnitude < Time.fixedDeltaTime * _moveAcceleration)
-                {
-                    _moveVelocityWS = _moveVelocityTargetWS;
-                }
-                else
-                {
-                    _moveVelocityWS += (_moveVelocityTargetWS - _moveVelocityWS).normalized * Time.fixedDeltaTime * _moveAcceleration;
-                }
-                break;
-            case KinematicCharacterEnumExtensions.ESpeedControlMode.Exponential:
-                if ((_moveVelocityWS - _moveVelocityTargetWS).magnitude < Mathf.Epsilon)
-                {
-                    _moveVelocityWS = _moveVelocityTargetWS;
-                }
-                else
-                {
-                    _moveVelocityWS += (_moveVelocityTargetWS - _moveVelocityWS) * Time.fixedDeltaTime * _moveDamp;
-                }
-                break;
-            default:
-                _moveVelocityWS = _moveVelocityTargetWS;
-                break;
-        }
+        _moveVelocity.WS += _externalMovementSettings._groundMove;
 
-        _moveVelocityWS += _externalGroundMove;
-        _moveVelocityWS += Vector3.ProjectOnPlane(_externalAcceleration, gravityDirection) * Time.fixedDeltaTime;
+        //Vector3 externalVelocityWS = Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection) * Time.fixedDeltaTime;
 
-        _playerHeightWS = _playerHeightOS * transform.localScale.y;
+        _jumpVelocity.WS += Vector3.Project(_externalMovementSettings._acceleration, gravityDirection) * Time.fixedDeltaTime;
+        _moveVelocity.WS += Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection) * Time.fixedDeltaTime;
+
+        _playerHeight.WS = _playerHeight.OS * transform.localScale.y;
     }
 
     private void HandleCollisionsAndMovement()
     {
-        if (_isPositionSet)
+        if (_externalMovementSettings._isPositionSet)
         {
-            _jumpVelocityWS = _jumpVelocityOS = _gravity * Time.fixedDeltaTime * 0.5f;
-            _rigidbody.MovePosition(_externalPosition);
-            _isPositionSet = false;
+            _jumpVelocity.WS = _jumpVelocity.OS = Gravity * Time.fixedDeltaTime * 0.5f;
+            _componentSettings._rigidbody.MovePosition(_externalMovementSettings._position);
+            _externalMovementSettings._isPositionSet = false;
             return;
         }
 
         _groundedDepth = 0;
 
-        _horizontalDisplacement = CollideAndSlide(_moveVelocityWS * Time.fixedDeltaTime, _rigidbody.position + _height.Value * _playerUp.normalized * 0.5f, 0, false);
-        _verticalDisplacement = CollideAndSlide(_jumpVelocityWS * Time.fixedDeltaTime, _rigidbody.position + _height.Value * _playerUp.normalized * 0.5f + _horizontalDisplacement, 0, true);
+        _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition + _height.Value * _playerUp.normalized * 0.5f, 0, false);
+        _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition + _height.Value * _playerUp.normalized * 0.5f + _horizontalDisplacement, 0, true);
 
-        Debug.DrawRay(_rigidbody.position, _horizontalDisplacement, Color.green, 1f);
-        Debug.DrawRay(_rigidbody.position + _horizontalDisplacement, _verticalDisplacement, Color.red, 1f);
+        Debug.DrawRay(_rigidbodyPosition, _horizontalDisplacement, Color.green, 1f);
+        Debug.DrawRay(_rigidbodyPosition + _horizontalDisplacement, _verticalDisplacement, Color.red, 1f);
 
         if (!_isGrounded && _isGroundedBefore)
         {
@@ -365,15 +305,15 @@ public class KinematicCharacterController : MonoBehaviour
         }
 
         _displacement = _horizontalDisplacement + _verticalDisplacement;
-        _nextPositionWS = _displacement + _rigidbody.position;
+        _nextPositionWS = _displacement + _rigidbodyPosition;
 
-        _rigidbody.MovePosition(_nextPositionWS);
+        _componentSettings._rigidbody.MovePosition(_nextPositionWS);
         Debug.DrawRay(transform.position, Velocity, Color.white);
     }
 
     private Vector3 CollideAndSlide(Vector3 vel, Vector3 pos, int depth, bool gravityPass, Vector3 velInit = default)
     {
-        if (depth >= _maxBounces) return Vector3.zero;
+        if (depth >= _physicsSettings._maxBounces) return Vector3.zero;
 
         if (depth == 0)
         {
@@ -385,11 +325,11 @@ public class KinematicCharacterController : MonoBehaviour
             }
         }
 
-        float dist = vel.magnitude + _skinWidth;
+        float dist = vel.magnitude + _physicsSettings._skinWidth;
         Vector3 capsulePoint = (_height.Value * 0.5f - _radius.Value) * _playerUp.normalized;
         Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radius.Value;
 
-        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _skinWidth, vel.normalized, out hit, dist, _whatIsGround, queryTrigger))
+        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _whatIsGround, queryTrigger))
         {
             if (hit.collider.isTrigger) return CollideAndSlide(vel, pos, depth + 1, gravityPass);
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
@@ -401,7 +341,7 @@ public class KinematicCharacterController : MonoBehaviour
             if (snapToSurface.magnitude <= _skinWidth) snapToSurface = Vector3.zero;
 
             // if flat ground or slope
-            if (angle <= _maxSlopeAngle || _isStep)
+            if (angle <= _stepAndSlopeHandleSettings._maxSlopeAngle || _isStep)
             {
                 _isGrounded = true;
                 _groundNormal = (_groundNormal * _groundedDepth + hit.normal).normalized;
@@ -409,7 +349,7 @@ public class KinematicCharacterController : MonoBehaviour
 
                 if (gravityPass)
                 {
-                    if (angle <= _maxSlopeAngle) _isStep = false;
+                    if (angle <= _stepAndSlopeHandleSettings._maxSlopeAngle) _isStep = false;
 
                     return snapToSurface;
                 }
@@ -417,9 +357,9 @@ public class KinematicCharacterController : MonoBehaviour
                 leftover = projectAndScale(leftover, _groundNormal);
             }
             // if ceiling, cancel upwards velocity
-            else if (angle >= _minCeilingAngle)
+            else if (angle >= _stepAndSlopeHandleSettings._minCeilingAngle)
             {
-                _jumpVelocityWS = Vector3.zero;
+                _jumpVelocity.WS = Vector3.zero;
                 return snapToSurface;
             }
             // if wall
@@ -449,22 +389,22 @@ public class KinematicCharacterController : MonoBehaviour
                 }
 
                 // if upStep
-                if (_isUpStepEnabled && _isGroundedBefore && !gravityPass)
+                if (_stepAndSlopeHandleSettings._isUpStepEnabled && _isGroundedBefore && !gravityPass)
                 {
                     Vector3 start = hit.point + Vector3.up - flatHit * 0.01f;
 
-                    bool b = Physics.Raycast(start, gravityDirection, out RaycastHit h, _maxStepUpHeight + 1f, _whatIsGround, queryTrigger);
+                    bool b = Physics.Raycast(start, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepUpHeight + 1f, _whatIsGround, queryTrigger);
 
                     float upStepDistance = Vector3.Dot(h.point - characterLowestPosition, _playerUp);
 
-                    if (b && upStepDistance <= _maxStepUpHeight && Vector3.Angle(h.normal, -gravityDirection) <= MaxSlopeAngle)
+                    if (b && upStepDistance <= _stepAndSlopeHandleSettings._maxStepUpHeight && Vector3.Angle(h.normal, -gravityDirection) <= MaxSlopeAngle)
                     {
                         _isStep = true;
 
                         snapToSurface = vel.normalized * dist + upStepDistance * (-gravityDirection);
                         leftover = Vector3.zero;
 
-                        _jumpVelocityWS += _maxStepDownHeight * gravityDirection / Time.fixedDeltaTime;
+                        _jumpVelocity.WS += _stepAndSlopeHandleSettings._maxStepDownHeight * gravityDirection / Time.fixedDeltaTime;
                     }
 
                 }
@@ -473,18 +413,18 @@ public class KinematicCharacterController : MonoBehaviour
             return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, gravityPass, velInit);
         }
 
-        else if (gravityPass && !_isGrounded && _isGroundedBefore && _jumpVelocityIS == 0)
+        else if (gravityPass && !_isGrounded && _isGroundedBefore && _jumpVelocity.IS.Value == 0)
         {
-            if (_isDownStepEnabled)
+            if (_stepAndSlopeHandleSettings._isDownStepEnabled)
             {
-                bool b = Physics.Raycast(pos + _moveVelocityWS * Time.fixedDeltaTime, gravityDirection, out RaycastHit h, _maxStepDownHeight + _height.Value * 0.5f, _whatIsGround, queryTrigger);
-                bool b1 = Physics.SphereCast(pos + _moveVelocityWS * Time.fixedDeltaTime + capsulePoint, _capsuleCollider.bounds.extents.x, -_playerUp.normalized, out RaycastHit h2, capsulePoint.magnitude * 2f, _whatIsGround, queryTrigger);
+                bool b = Physics.Raycast(pos + _moveVelocity.WS * Time.fixedDeltaTime, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepDownHeight + _height.Value * 0.5f, _whatIsGround, queryTrigger);
+                bool b1 = Physics.SphereCast(pos + _moveVelocity.WS * Time.fixedDeltaTime + capsulePoint, _componentSettings._capsuleCollider.bounds.extents.x, -_playerUp.normalized, out RaycastHit h2, capsulePoint.magnitude * 2f, _whatIsGround, queryTrigger);
 
                 if (b && !b1 && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
                 {
                     _isStep = true;
 
-                    return CollideAndSlide(-_playerUp * _maxStepUpHeight, pos, depth + 1, true, velInit);
+                    return CollideAndSlide(-_playerUp * _stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
                 }
             }
 
@@ -493,42 +433,44 @@ public class KinematicCharacterController : MonoBehaviour
         return vel;
     }
 
-
     private Vector3 projectAndScale(Vector3 a, Vector3 n)
     {
         return Vector3.ClampMagnitude(Vector3.ProjectOnPlane(a, n), a.magnitude);
     }
 
-    void UpdateProperties()
+    private void UpdateProperties()
     {
-        _height.OnUpdate(_playerHeightWS);
-        _radius.OnUpdate(_capsuleRadius);
-        jumpSpeed.OnUpdate(_jumpSpeed);
+        _height.OnUpdate(_playerHeight.WS);
+        _radius.OnUpdate(CapsuleRadius);
+        jumpSpeed.OnUpdate(_movementSettings._jumpSpeed);
         _airJump.OnUpdate();
-        jumpMaxHeight.OnUpdate(_jumpMaxHeight);
-        gravity.OnUpdate(_gravity);
+        jumpMaxHeight.OnUpdate(_movementSettings._jumpMaxHeight);
+        gravity.OnUpdate(Gravity);
+        _jumpVelocity.IS.OnUpdate();
 
         if (_height.IsChanged)
         {
-            _capsuleCollider.height = _height.Value - _skinWidth * 2f;
-            _capsuleCollider.transform.localPosition = _playerUp.normalized * _height.Value * 0.5f;
+            _componentSettings._capsuleCollider.height = _height.Value - _skinWidth * 2f;
+            _componentSettings._capsuleCollider.transform.localPosition = _playerUp.normalized * _height.Value * 0.5f;
         }
 
         if (_radius.IsChanged)
         {
-            _capsuleCollider.radius = _radius.Value - _skinWidth;
+            _componentSettings._capsuleCollider.radius = _radius.Value - _skinWidth;
         }
 
         if (jumpSpeed.IsChanged)
         {
-            _jumpMaxHeight = jumpSpeed.Value * jumpSpeed.Value * 0.5f / Mathf.Abs(_gravity.y);
-            jumpMaxHeight = new Float(_jumpMaxHeight);
+            _movementSettings._jumpMaxHeight = jumpSpeed.Value * jumpSpeed.Value * 0.5f / Mathf.Abs(Gravity.y);
+            jumpMaxHeight = new Float(_movementSettings._jumpMaxHeight);
         }
         else if (jumpMaxHeight.IsChanged)
         {
-            _jumpSpeed = Mathf.Sqrt(2f * Mathf.Abs(_gravity.y) * jumpMaxHeight.Value);
-            jumpSpeed = new Float(_jumpSpeed);
+            _movementSettings._jumpSpeed = Mathf.Sqrt(2f * Mathf.Abs(Gravity.y) * jumpMaxHeight.Value);
+            jumpSpeed = new Float(_movementSettings._jumpSpeed);
         }
+
+        if (_isGrounded) _airJump.Reset();
     }
     #endregion
 
@@ -537,38 +479,66 @@ public class KinematicCharacterController : MonoBehaviour
     {
         switch (forceMode) {
             case ForceMode.Force:
-                _externalAcceleration = force / _rigidbody.mass;
+                _externalMovementSettings._acceleration = force / _componentSettings._rigidbody.mass;
             break;
             case ForceMode.Impulse:
-                _externalAcceleration = force / _rigidbody.mass;
+                _externalMovementSettings._acceleration = force / _componentSettings._rigidbody.mass;
                 StartCoroutine(ExAccelReset());
             break;
             case ForceMode.Acceleration:
-                _externalAcceleration = force;
+                _externalMovementSettings._acceleration = force;
             break;
             case ForceMode.VelocityChange:
-                _externalAcceleration = force;
+                _externalMovementSettings._acceleration = force;
                 StartCoroutine(ExAccelReset());
             break;
         }
         
     }
-    WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
+    
+
     IEnumerator ExAccelReset() {
-        yield return waitForFixedUpdate;
-        _externalAcceleration = Vector3.zero;
+        while (_externalMovementSettings._acceleration != Vector3.zero) {
+            yield return waitForFixedUpdate;
+            switch (_externalMovementSettings._speedControlMode) {
+                case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
+                    _externalMovementSettings._acceleration = Vector3.zero;
+                    yield break;
+                case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
+                    if (_externalMovementSettings._acceleration.magnitude <= _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime) {
+                        _externalMovementSettings._acceleration = Vector3.zero;
+                        yield break;
+                    }
+                    Vector3 horizontalAccel = Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection);
+                    horizontalAccel -= horizontalAccel.normalized * _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime;
+                    _externalMovementSettings._acceleration = horizontalAccel;
+                    break;
+                case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
+                    if (_externalMovementSettings._acceleration.magnitude <= _externalMovementSettings._moveAcceleration) {
+                        _externalMovementSettings._acceleration = Vector3.zero;
+                        yield break;
+                    }
+                    horizontalAccel = Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection);
+                    horizontalAccel -= horizontalAccel * _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime;
+                    _externalMovementSettings._acceleration = horizontalAccel;
+                    break;
+                default:
+                    _externalMovementSettings._acceleration = Vector3.zero;
+                    yield break;
+            }
+        }
         yield return null;
     }
 
     public void SetVelocity(Vector3 velocity)
     {
-        _externalVelocity = velocity;
+        _externalMovementSettings._velocity = velocity;
     }
 
     public void SetPosition(Vector3 position)
     {
-        _externalPosition = position;
-        _isPositionSet = true;
+        _externalMovementSettings._position = position;
+        _externalMovementSettings._isPositionSet = true;
     }
     #endregion
 }

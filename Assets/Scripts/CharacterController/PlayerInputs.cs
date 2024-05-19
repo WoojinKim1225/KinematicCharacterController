@@ -62,7 +62,7 @@ public class InputManager : MonoBehaviour
                 var controller = (KinematicCharacterController)controllingObject.Value;
                 controller.MoveVelocityIS = _moveValue;
                 controller.JumpVelocityIS = _jumpValue;
-                controller.CrouchInputIS = _crouchValue;
+                controller.PlayerHeightIS = _crouchValue;
                 controller.SprintInputIS = _sprintValue;
             }
         }
