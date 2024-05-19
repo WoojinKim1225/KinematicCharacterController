@@ -12,7 +12,7 @@ public class KinematicCharacterController : MonoBehaviour
     #region Variables
 
     [SerializeField] private ComponentSettings _componentSettings = new ComponentSettings();
-
+    
     public new Rigidbody rigidbody => _componentSettings._rigidbody;
     private Vector3 _rigidbodyPosition => _componentSettings._rigidbody.transform.position;
 
@@ -106,13 +106,15 @@ public class KinematicCharacterController : MonoBehaviour
     [SerializeField] private Vector3 _playerUp = Vector3.up;
 
     private RaycastHit hit;
-    [SerializeField] private LayerMask _whatIsGround = Physics.AllLayers;
-    public LayerMask WhatIsGround => _whatIsGround;
+    
+    public LayerMask WhatIsGround => _physicsSettings._whatIsGround;
     private Vector3 groundExitDisplacement;
 
     private bool _isStep;
+
     readonly QueryTriggerInteraction queryTrigger = QueryTriggerInteraction.Ignore;
     readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
+
     #endregion
 
     void Awake()
@@ -328,7 +330,7 @@ public class KinematicCharacterController : MonoBehaviour
         Vector3 capsulePoint = (_height.Value * 0.5f - _radius.Value) * _playerUp.normalized;
         Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radius.Value;
 
-        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _whatIsGround, queryTrigger))
+        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _physicsSettings._whatIsGround, queryTrigger))
         {
             if (hit.collider.isTrigger) return CollideAndSlide(vel, pos, depth + 1, gravityPass);
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
@@ -391,7 +393,7 @@ public class KinematicCharacterController : MonoBehaviour
                 {
                     Vector3 start = hit.point + Vector3.up - flatHit * 0.01f;
 
-                    bool b = Physics.Raycast(start, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepUpHeight + 1f, _whatIsGround, queryTrigger);
+                    bool b = Physics.Raycast(start, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepUpHeight + 1f, _physicsSettings._whatIsGround, queryTrigger);
 
                     float upStepDistance = Vector3.Dot(h.point - characterLowestPosition, _playerUp);
 
@@ -415,8 +417,8 @@ public class KinematicCharacterController : MonoBehaviour
         {
             if (_stepAndSlopeHandleSettings._isDownStepEnabled)
             {
-                bool b = Physics.Raycast(pos + _moveVelocity.WS * Time.fixedDeltaTime, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepDownHeight + _height.Value * 0.5f, _whatIsGround, queryTrigger);
-                bool b1 = Physics.SphereCast(pos + _moveVelocity.WS * Time.fixedDeltaTime + capsulePoint, _componentSettings._capsuleCollider.bounds.extents.x, -_playerUp.normalized, out RaycastHit h2, capsulePoint.magnitude * 2f, _whatIsGround, queryTrigger);
+                bool b = Physics.Raycast(pos + _moveVelocity.WS * Time.fixedDeltaTime, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepDownHeight + _height.Value * 0.5f, _physicsSettings._whatIsGround, queryTrigger);
+                bool b1 = Physics.SphereCast(pos + _moveVelocity.WS * Time.fixedDeltaTime + capsulePoint, _componentSettings._capsuleCollider.bounds.extents.x, -_playerUp.normalized, out RaycastHit h2, capsulePoint.magnitude * 2f, _physicsSettings._whatIsGround, queryTrigger);
 
                 if (b && !b1 && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
                 {

@@ -173,14 +173,17 @@ MonoBehaviour:
     _sprintSpeedMultiplier: 2
     _crouchSpeedMultiplier: 0.5
     _maxAirJumpCount: 5
-    _speedControlMode: 0
-    _movementMode: 0
+    _speedControlMode: 1
     _moveAcceleration: 25
     _moveDamp: 10
+    _movementMode: 0
   _physicsSettings:
     _skinWidth: 0.01
     _maxBounces: 5
     _gravity: {x: 0, y: -20, z: 0}
+    _whatIsGround:
+      serializedVersion: 2
+      m_Bits: 4294967295
   _characterSizeSettings:
     _idleHeight: 2
     _crouchHeight: 1.2
@@ -189,9 +192,9 @@ MonoBehaviour:
     _maxSlopeAngle: 55
     _minCeilingAngle: 130
     _isUpStepEnabled: 1
-    _maxStepUpHeight: 0.3
+    _maxStepUpHeight: 0.4
     _isDownStepEnabled: 1
-    _maxStepDownHeight: 0.3
+    _maxStepDownHeight: 0.4
   _externalMovementSettings:
     _groundMove: {x: 0, y: 0, z: 0}
     _acceleration: {x: 0, y: 0, z: 0}
@@ -203,9 +206,6 @@ MonoBehaviour:
   _isGrounded: 0
   _groundNormal: {x: 0, y: 1, z: 0}
   _playerUp: {x: 0, y: 1, z: 0}
-  _whatIsGround:
-    serializedVersion: 2
-    m_Bits: 1
 --- !u!1 &6604793984036076814
 GameObject:
   m_ObjectHideFlags: 0

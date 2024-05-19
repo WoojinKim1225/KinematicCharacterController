@@ -200,8 +200,8 @@ public class KinematicCharacterControllerEditor : Editor
     );
 
     void OnEnable()
-    {
-        rigidbody = serializedObject.FindProperty("_rigidbody");
+    {   
+        rigidbody = serializedObject.FindProperty("_componentSettings");
         collider = serializedObject.FindProperty("_capsuleCollider");
 
         capsuleRadius = serializedObject.FindProperty("_capsuleRadius");
@@ -237,14 +237,6 @@ public class KinematicCharacterControllerEditor : Editor
     public override void OnInspectorGUI()
     {
         KinematicCharacterController controller = (KinematicCharacterController)target;
-        debug = EditorGUILayout.BeginToggleGroup("Debug", debug);
-        EditorGUILayout.EndToggleGroup();
-
-        if (debug)
-        {
-            base.OnInspectorGUI();
-            return;
-        }
 
         serializedObject.Update();
 
@@ -252,91 +244,7 @@ public class KinematicCharacterControllerEditor : Editor
 
         EditorGUILayout.Space(height + 100f);
 
-        showComponents = EditorGUILayout.BeginFoldoutHeaderGroup(showComponents, "Components");
-
-        if (showComponents)
-        {
-            EditorGUILayout.PropertyField(rigidbody, rigidbodyContent, true);
-            EditorGUILayout.PropertyField(collider, colliderContent, true);
-        }
-
-        EditorGUILayout.EndFoldoutHeaderGroup();
-
-        showMovements = EditorGUILayout.BeginFoldoutHeaderGroup(showMovements, "Movements");
-
-        if (showMovements)
-        {
-            EditorGUILayout.LabelField("Orientation");
-            EditorGUILayout.PropertyField(viewDirection, viewDirectionContent, true);
-
-            EditorGUILayout.LabelField("Horizontal Movement");
-            EditorGUILayout.PropertyField(moveSpeed, moveSpeedContent, true);
-            EditorGUILayout.PropertyField(speedControlMode, speedControlModeContent, true);
-            if (speedControlMode.enumValueIndex == 1)
-            {
-                EditorGUILayout.PropertyField(moveAcceleration, moveAccelerationContent, true);
-            }
-            if (speedControlMode.enumValueIndex == 2)
-            {
-                EditorGUILayout.PropertyField(moveDamp, moveDampContent, true);
-            }
-
-            EditorGUILayout.PropertyField(sprintSpeedMultiplier, sprintSpeedMultiplierContent, true);
-            EditorGUILayout.PropertyField(crouchSpeedMultiplier, crouchSpeedMultiplierContent, true);
-
-            useJumpMaxHeight = EditorGUILayout.BeginToggleGroup("Use jump max height / 점프 최대 높이 사용하기", useJumpMaxHeight);
-            EditorGUILayout.EndToggleGroup();
-
-            if (useJumpMaxHeight)
-            {
-                EditorGUILayout.PropertyField(maxJumpHeight, maxJumpHeightContent, true);
-            }
-            else
-            {
-                EditorGUILayout.PropertyField(jumpSpeed, jumpSpeedContent, true);
-            }
-        }
-
-        EditorGUILayout.EndFoldoutHeaderGroup();
-
-        physics = EditorGUILayout.BeginFoldoutHeaderGroup(physics, "Physics");
-
-        if (physics)
-        {
-            EditorGUILayout.PropertyField(skinWidth, skinWidthContent, true);
-            EditorGUILayout.PropertyField(maxBounce, maxBounceContent, true);
-            EditorGUILayout.PropertyField(gravity, gravityContent, true);
-        }
-
-        EditorGUILayout.EndFoldoutHeaderGroup();
-
-        characterSize = EditorGUILayout.BeginFoldoutHeaderGroup(characterSize, "Character Size");
-
-        if (characterSize)
-        {
-            EditorGUILayout.DelayedFloatField(capsuleRadius, capsuleRadiusContent);
-            EditorGUILayout.DelayedFloatField(capsuleHeight, capsuleHeightContent);
-            EditorGUILayout.DelayedFloatField(crouchedCapsuleHeight, crouchedCapsuleHeightContent);
-        }
-
-        EditorGUILayout.EndFoldoutHeaderGroup();
-
-
-        showSlopeAndStepHandle = EditorGUILayout.BeginFoldoutHeaderGroup(showSlopeAndStepHandle, "Slope and Step Handle");
-
-        if (showSlopeAndStepHandle)
-        {
-            EditorGUILayout.PropertyField(maxSlopeAngle, maxSlopeAngleContent, true);
-            EditorGUILayout.PropertyField(minCeilingAngle, minCeilingAngleContent, true);
-            EditorGUILayout.PropertyField(isUpStepEnabled, isUpStepEnabledContent, true);
-            if (controller.IsUpStepEnabled) EditorGUILayout.PropertyField(maxStepUpHeight, maxStepUpHeightContent, true);
-            EditorGUILayout.PropertyField(isDownStepEnabled, isDownStepEnabledContent, true);
-            if (controller.IsDownStepEnabled) EditorGUILayout.PropertyField(maxStepDownHeight, maxStepDownHeightContent, true);
-        }
-
-        EditorGUILayout.EndFoldoutHeaderGroup();
-
-        serializedObject.ApplyModifiedProperties();
+        base.OnInspectorGUI();
     }
 
     int DrawShapes()
