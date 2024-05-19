@@ -26,7 +26,6 @@ public class KCCImpulse : MonoBehaviour
     void Update()
     {
         b = inputActions.action.ReadValue<float>() != 0;
-        Debug.DrawRay(kcc.transform.position, kcc.ViewDirection);
         
         if (b && !b1) {
             kcc.AddForce(kcc.ViewDirection * f, ForceMode.VelocityChange);

@@ -38,7 +38,7 @@ public class KinematicCharacterController : MonoBehaviour
     private float _skinWidth => _physicsSettings._skinWidth;
     public Vector3 Gravity {get => _physicsSettings._gravity; set => _physicsSettings._gravity = value; }
 
-    public Vector3Stateful gravity;
+    private Vector3Stateful _gravity;
     private Vector3 gravityDirection => _physicsSettings._gravity.normalized;
     private Vector3 accelerationDirection => (_physicsSettings._gravity + _externalMovementSettings._acceleration).normalized;
 
@@ -170,7 +170,7 @@ public class KinematicCharacterController : MonoBehaviour
 
         _airJump = new Float(_movementSettings._maxAirJumpCount);
 
-        gravity = new Vector3Stateful(Gravity);
+        _gravity = new Vector3Stateful(Gravity);
         _jumpVelocity.IS = new Float(0);
     }
 
@@ -308,7 +308,6 @@ public class KinematicCharacterController : MonoBehaviour
         _nextPositionWS = _displacement + _rigidbodyPosition;
 
         _componentSettings._rigidbody.MovePosition(_nextPositionWS);
-        Debug.DrawRay(transform.position, Velocity, Color.white);
     }
 
     private Vector3 CollideAndSlide(Vector3 vel, Vector3 pos, int depth, bool gravityPass, Vector3 velInit = default)
@@ -444,7 +443,7 @@ public class KinematicCharacterController : MonoBehaviour
         jumpSpeed.OnUpdate(_movementSettings._jumpSpeed);
         _airJump.OnUpdate();
         jumpMaxHeight.OnUpdate(_movementSettings._jumpMaxHeight);
-        gravity.OnUpdate(Gravity);
+        _gravity.OnUpdate(Gravity);
         _jumpVelocity.IS.OnUpdate();
 
         if (_height.IsChanged)

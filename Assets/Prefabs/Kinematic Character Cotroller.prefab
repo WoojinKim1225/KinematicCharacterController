@@ -181,25 +181,10 @@ MonoBehaviour:
     _skinWidth: 0.01
     _maxBounces: 5
     _gravity: {x: 0, y: -20, z: 0}
-  gravity:
-    _value: {x: 0, y: 0, z: 0}
-    _isChanged: 0
-    _beforeValue: {x: 0, y: 0, z: 0}
-    _initialValue: {x: 0, y: 0, z: 0}
   _characterSizeSettings:
     _idleHeight: 2
     _crouchHeight: 1.2
     _capsuleRadius: 0.5
-  _height:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
-  _radius:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
   _stepAndSlopeHandleSettings:
     _maxSlopeAngle: 55
     _minCeilingAngle: 130
@@ -207,6 +192,14 @@ MonoBehaviour:
     _maxStepUpHeight: 0.3
     _isDownStepEnabled: 1
     _maxStepDownHeight: 0.3
+  _externalMovementSettings:
+    _groundMove: {x: 0, y: 0, z: 0}
+    _acceleration: {x: 0, y: 0, z: 0}
+    _velocity: {x: 0, y: 0, z: 0}
+    _position: {x: 0, y: 0, z: 0}
+    _isPositionSet: 0
+    _speedControlMode: 1
+    _moveAcceleration: 2000
   _isGrounded: 0
   _groundNormal: {x: 0, y: 1, z: 0}
   _playerUp: {x: 0, y: 1, z: 0}
