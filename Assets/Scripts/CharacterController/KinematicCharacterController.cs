@@ -335,7 +335,6 @@ public class KinematicCharacterController : MonoBehaviour
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
             Vector3 leftover = vel - snapToSurface;
             float angle = Vector3.Angle(-gravityDirection, hit.normal);
-            Debug.Log(-gravityDirection + ", " + hit.normal + " = " + angle);
 
             // the terrain is inside the collider
             if (snapToSurface.magnitude <= _skinWidth) snapToSurface = Vector3.zero;

@@ -15,9 +15,9 @@ public class WaterPhysics : MonoBehaviour
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
             v = Vector3.Lerp(Vector3.zero, Vector3.up * 21f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
-            Debug.DrawRay(kcc.transform.position, kcc.Velocity, Color.yellow);
+            
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
-
+            kcc.IsDownStepEnabled = false;
             
             kcc.AddForce(v - kcc.Velocity * 0.9f);
         }
@@ -28,6 +28,7 @@ public class WaterPhysics : MonoBehaviour
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
+            kcc.IsDownStepEnabled = true;
             kcc.AddForce(Vector3.zero);
             //kcc.SetVelocity(Vector3.zero);
         }

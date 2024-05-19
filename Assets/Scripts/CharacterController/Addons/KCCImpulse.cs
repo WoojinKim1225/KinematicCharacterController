@@ -32,7 +32,8 @@ public class KCCImpulse : MonoBehaviour
             kcc.AddForce(kcc.ViewDirection * f, ForceMode.VelocityChange);
             kcc.IsDownStepEnabled = false;
             kcc.IsUpStepEnabled = false;
-        } else {
+        }
+        if (!b && b1) {
             kcc.IsDownStepEnabled = true;
             kcc.IsUpStepEnabled = true;
         }
