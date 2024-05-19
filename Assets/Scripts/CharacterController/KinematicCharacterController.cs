@@ -5,6 +5,8 @@ using StatefulVariables;
 using KinematicCharacterSettings;
 using System.Collections;
 using Unity.VisualScripting;
+using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(Rigidbody))]
 public class KinematicCharacterController : MonoBehaviour
@@ -115,6 +117,8 @@ public class KinematicCharacterController : MonoBehaviour
     readonly QueryTriggerInteraction queryTrigger = QueryTriggerInteraction.Ignore;
     readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
 
+    public Dictionary<GameObject, Vector3> accelerationGive, impulseGive;
+
     #endregion
 
     void Awake()
@@ -134,6 +138,9 @@ public class KinematicCharacterController : MonoBehaviour
         _componentSettings._capsuleCollider.bounds.Expand(-2 * _physicsSettings._skinWidth);
         _componentSettings._capsuleCollider.height = _height.Value - 2 * _physicsSettings._skinWidth;
         _componentSettings._capsuleCollider.radius = _radius.Value - _physicsSettings._skinWidth;
+
+        accelerationGive = new Dictionary<GameObject, Vector3>();
+        impulseGive = new Dictionary<GameObject, Vector3>();
     }
 
     void Update()
@@ -276,6 +283,9 @@ public class KinematicCharacterController : MonoBehaviour
         _moveVelocity.WS += _externalMovementSettings._groundMove;
 
         //Vector3 externalVelocityWS = Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection) * Time.fixedDeltaTime;
+
+        _externalMovementSettings._acceleration = accelerationGive.Select(x => x.Value).Aggregate(Vector3.zero, (acc, val) => acc + val);
+        _externalMovementSettings._acceleration += impulseGive.Select(x => x.Value).Aggregate(Vector3.zero, (acc, val) => acc + val);
 
         _jumpVelocity.WS += Vector3.Project(_externalMovementSettings._acceleration, gravityDirection) * Time.fixedDeltaTime;
         _moveVelocity.WS += Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection) * Time.fixedDeltaTime;
@@ -475,55 +485,98 @@ public class KinematicCharacterController : MonoBehaviour
     #endregion
 
     #region Public Methods
-    public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
+    public void AddForce(Vector3 force, GameObject from, ForceMode forceMode = ForceMode.Force)
     {
+        
         switch (forceMode) {
             case ForceMode.Force:
-                _externalMovementSettings._acceleration = force / _componentSettings._rigidbody.mass;
+                if (!accelerationGive.ContainsKey(from)) {
+                    if (force == Vector3.zero) {
+                        
+                    } else {
+                        accelerationGive.Add(from, force / _componentSettings._rigidbody.mass);
+                    }
+                }
+                else {
+                    if (force == Vector3.zero) {
+                        accelerationGive.Remove(from);
+                    }
+                    else accelerationGive[from] = force / _componentSettings._rigidbody.mass;
+                }
             break;
             case ForceMode.Impulse:
-                _externalMovementSettings._acceleration = force / _componentSettings._rigidbody.mass;
-                StartCoroutine(ExAccelReset());
+                impulseGive.Add(from, force / _componentSettings._rigidbody.mass);
+                StartCoroutine(ExAccelReset(impulseGive, from));
             break;
             case ForceMode.Acceleration:
-                _externalMovementSettings._acceleration = force;
+                if (!accelerationGive.ContainsKey(from)) {
+                    if (force == Vector3.zero) {
+                        
+                    } else {
+                        accelerationGive.Add(from, force);
+                    }
+                }
+                else {
+                    if (force == Vector3.zero) {
+                        accelerationGive.Remove(from);
+                    }
+                    else accelerationGive[from] = force;
+                }
             break;
             case ForceMode.VelocityChange:
-                _externalMovementSettings._acceleration = force;
-                StartCoroutine(ExAccelReset());
+
+                if (!impulseGive.ContainsKey(from)) {
+                    if (force == Vector3.zero) {
+                        
+                    } else {
+                        impulseGive.Add(from, force);
+                        StartCoroutine(ExAccelReset(impulseGive, from));
+                    }
+                }
+                else {
+                    if (force == Vector3.zero) {
+                        impulseGive.Remove(from);
+                    }
+                    else impulseGive[from] = force;
+                }
+                
             break;
         }
         
     }
     
 
-    IEnumerator ExAccelReset() {
-        while (_externalMovementSettings._acceleration != Vector3.zero) {
+    IEnumerator ExAccelReset(Dictionary<GameObject, Vector3> keyValuePairs, GameObject key) {
+        while (keyValuePairs[key] != Vector3.zero) {
             yield return waitForFixedUpdate;
             switch (_externalMovementSettings._speedControlMode) {
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
-                    _externalMovementSettings._acceleration = Vector3.zero;
+                    keyValuePairs[key] = Vector3.zero;
+                    keyValuePairs.Remove(key);
                     yield break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
-                    if (_externalMovementSettings._acceleration.magnitude <= _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime) {
-                        _externalMovementSettings._acceleration = Vector3.zero;
+                    if (keyValuePairs[key].magnitude <= _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime) {
+                        keyValuePairs[key] = Vector3.zero;
+                        keyValuePairs.Remove(key);
                         yield break;
                     }
-                    Vector3 horizontalAccel = Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection);
+                    Vector3 horizontalAccel = Vector3.ProjectOnPlane(keyValuePairs[key], gravityDirection);
                     horizontalAccel -= horizontalAccel.normalized * _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime;
-                    _externalMovementSettings._acceleration = horizontalAccel;
+                    keyValuePairs[key] = horizontalAccel;
                     break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
-                    if (_externalMovementSettings._acceleration.magnitude <= _externalMovementSettings._moveAcceleration) {
-                        _externalMovementSettings._acceleration = Vector3.zero;
+                    if (keyValuePairs[key].magnitude <= _externalMovementSettings._moveAcceleration) {
+                        keyValuePairs[key] = Vector3.zero;
+                        keyValuePairs.Remove(key);
                         yield break;
                     }
-                    horizontalAccel = Vector3.ProjectOnPlane(_externalMovementSettings._acceleration, gravityDirection);
+                    horizontalAccel = Vector3.ProjectOnPlane(keyValuePairs[key], gravityDirection);
                     horizontalAccel -= horizontalAccel * _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime;
-                    _externalMovementSettings._acceleration = horizontalAccel;
+                    keyValuePairs[key] = horizontalAccel;
                     break;
                 default:
-                    _externalMovementSettings._acceleration = Vector3.zero;
+                    keyValuePairs[key] = Vector3.zero;
+                    keyValuePairs.Remove(key);
                     yield break;
             }
         }
