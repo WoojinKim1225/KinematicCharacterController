@@ -162,45 +162,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35013d68abd0e69439f47fdc77ee1929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rigidbody: {fileID: 0}
-  _capsuleCollider: {fileID: 0}
-  _viewDirection: {x: 0, y: 0, z: 1}
-  _moveSpeed: 4
-  _jumpSpeed: 10
-  _jumpMaxHeight: 2.5
-  _sprintSpeedMultiplier: 2
-  _crouchSpeedMultiplier: 0.5
-  _maxAirJumpCount: 5
-  _speedControlMode: 1
-  _movementMode: 0
-  _moveAcceleration: 20
-  _moveDamp: 10
-  jumpSpeed:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
-  jumpMaxHeight:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
-  _airJump:
-    _value: 0
-    _isChanged: 0
-    _beforeValue: 0
-    _initialValue: 0
-  _skinWidth: 0.01
-  _maxBounces: 5
-  _gravity: {x: 0, y: -20, z: 0}
+  _componentSettings:
+    _rigidbody: {fileID: 0}
+    _capsuleCollider: {fileID: 0}
+  _movementSettings:
+    _viewDirection: {x: 0, y: 0, z: 1}
+    _moveSpeed: 4
+    _jumpSpeed: 10
+    _jumpMaxHeight: 2
+    _sprintSpeedMultiplier: 2
+    _crouchSpeedMultiplier: 0.5
+    _maxAirJumpCount: 5
+    _speedControlMode: 0
+    _movementMode: 0
+    _moveAcceleration: 25
+    _moveDamp: 10
+  _physicsSettings:
+    _skinWidth: 0.01
+    _maxBounces: 5
+    _gravity: {x: 0, y: -20, z: 0}
   gravity:
     _value: {x: 0, y: 0, z: 0}
     _isChanged: 0
     _beforeValue: {x: 0, y: 0, z: 0}
     _initialValue: {x: 0, y: 0, z: 0}
-  _idleHeight: 2
-  _crouchHeight: 1.2
-  _capsuleRadius: 0.5
+  _characterSizeSettings:
+    _idleHeight: 2
+    _crouchHeight: 1.2
+    _capsuleRadius: 0.5
   _height:
     _value: 0
     _isChanged: 0
@@ -211,12 +200,13 @@ MonoBehaviour:
     _isChanged: 0
     _beforeValue: 0
     _initialValue: 0
-  _maxSlopeAngle: 50
-  _minCeilingAngle: 175
-  _isUpStepEnabled: 1
-  _maxStepUpHeight: 0.5
-  _isDownStepEnabled: 1
-  _maxStepDownHeight: 0.5
+  _stepAndSlopeHandleSettings:
+    _maxSlopeAngle: 55
+    _minCeilingAngle: 130
+    _isUpStepEnabled: 1
+    _maxStepUpHeight: 0.3
+    _isDownStepEnabled: 1
+    _maxStepDownHeight: 0.3
   _isGrounded: 0
   _groundNormal: {x: 0, y: 1, z: 0}
   _playerUp: {x: 0, y: 1, z: 0}

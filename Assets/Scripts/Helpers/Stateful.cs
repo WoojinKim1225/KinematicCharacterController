@@ -40,9 +40,9 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
 
         public void Reset()
         {
-            _beforeValue = _value;
+            _beforeValue = _initialValue;
             _value = _initialValue;
-            _isChanged = _beforeValue != _value;
+            _isChanged = false;
         }
     }
 

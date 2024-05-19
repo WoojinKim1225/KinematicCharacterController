@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using KinematicCharacterEnum;
+using KinematicCharacterSettings;
 
 public class WaterPhysics : MonoBehaviour
 {
@@ -16,7 +16,7 @@ public class WaterPhysics : MonoBehaviour
         if (kcc != null) {
             v = Vector3.Lerp(Vector3.zero, Vector3.up * 21f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
             Debug.DrawRay(kcc.transform.position, kcc.Velocity, Color.yellow);
-            kcc.MovementMode = KinematicCharacterEnumExtensions.EMovementMode.Swim;
+            kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
 
             
             kcc.AddForce(v - kcc.Velocity * 0.9f);
@@ -27,7 +27,7 @@ public class WaterPhysics : MonoBehaviour
     {
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
-            kcc.MovementMode = KinematicCharacterEnumExtensions.EMovementMode.Ground;
+            kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
             kcc.AddForce(Vector3.zero);
             //kcc.SetVelocity(Vector3.zero);
         }
