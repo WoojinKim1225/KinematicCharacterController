@@ -68,24 +68,24 @@ public class CameraController : MonoBehaviour
                 Vector3 DL = -halfWidth * transform.right - halfHeight * transform.up;
                 Vector3 DR = halfWidth * transform.right - halfHeight * transform.up;
 
-                bool isULHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + UL, -transform.forward, out RaycastHit h1, -_cameraOffset.z, _whatIsGround);
-                bool isURHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + UR, -transform.forward, out RaycastHit h2, -_cameraOffset.z, _whatIsGround);
-                bool isDLHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + DL, -transform.forward, out RaycastHit h3, -_cameraOffset.z, _whatIsGround);
-                bool isDRHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + DR, -transform.forward, out RaycastHit h4, -_cameraOffset.z, _whatIsGround);
+                bool isULHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + UL, -transform.forward, out RaycastHit h1, -_cameraOffset.z, _whatIsGround, QueryTriggerInteraction.Ignore);
+                bool isURHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + UR, -transform.forward, out RaycastHit h2, -_cameraOffset.z, _whatIsGround, QueryTriggerInteraction.Ignore);
+                bool isDLHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + DL, -transform.forward, out RaycastHit h3, -_cameraOffset.z, _whatIsGround, QueryTriggerInteraction.Ignore);
+                bool isDRHit = Physics.Raycast(kcc.transform.TransformPoint(_targetOffset) + DR, -transform.forward, out RaycastHit h4, -_cameraOffset.z, _whatIsGround, QueryTriggerInteraction.Ignore);
 
                 dist = Mathf.Max(isULHit ? -h1.distance : _cameraOffset.z, isURHit ? -h2.distance : _cameraOffset.z, isDLHit ? -h3.distance : _cameraOffset.z, isDRHit ? -h4.distance : _cameraOffset.z);
 
                 break;
             case ECameraCollisionMode.SphereCast:
                 r = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
-                bool isHit = Physics.SphereCast(kcc.transform.TransformPoint(_targetOffset), r, -transform.forward, out RaycastHit h, -_cameraOffset.z, _whatIsGround);
+                bool isHit = Physics.SphereCast(kcc.transform.TransformPoint(_targetOffset), r, -transform.forward, out RaycastHit h, -_cameraOffset.z, _whatIsGround, QueryTriggerInteraction.Ignore);
                 if (isHit && Vector3.Distance(h.point + h.normal * r, kcc.transform.TransformPoint(_targetOffset)) < -_cameraOffset.z) {
                     dist = -Vector3.Distance(h.point + h.normal * r, kcc.transform.TransformPoint(_targetOffset));
                 }
                 break;
             case ECameraCollisionMode.BoxCast:
                 s = new Vector3(halfWidth, halfHeight, camera.nearClipPlane);
-                isHit = Physics.BoxCast(kcc.transform.TransformPoint(_targetOffset), s, -transform.forward, out h, camera.transform.rotation, -_cameraOffset.z, _whatIsGround);
+                isHit = Physics.BoxCast(kcc.transform.TransformPoint(_targetOffset), s, -transform.forward, out h, camera.transform.rotation, -_cameraOffset.z, _whatIsGround, QueryTriggerInteraction.Ignore);
                 if (isHit && Vector3.Dot(h.point - kcc.transform.TransformPoint(_targetOffset), -transform.forward) - camera.nearClipPlane < -_cameraOffset.z) {
                     dist = Vector3.Dot(h.point - kcc.transform.TransformPoint(_targetOffset), transform.forward) + camera.nearClipPlane;
                 }
