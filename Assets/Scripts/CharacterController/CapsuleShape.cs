@@ -21,6 +21,7 @@ public class CapsuleShape : MonoBehaviour
     /// </summary>
     void Update()
     {
+        transform.rotation = Quaternion.LookRotation(kcc.Forward, kcc.Up);
         Bone.localScale = kcc.CapsuleRadius * 200f * Vector3.one;
         Bone.localPosition = (kcc.IdleHeight * 0.5f - kcc.CapsuleRadius) * Vector3.down;
         Bone001.localScale = kcc.CapsuleRadius * 200f * Vector3.one;

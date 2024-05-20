@@ -3,6 +3,50 @@ using UnityEngine;
 namespace StatefulVariables // Assuming your ReferenceManager class is in this namespace
 {
     [System.Serializable]
+    public class Bool
+    {
+        [SerializeField] private bool _value;
+        [SerializeField] private bool _isChanged;
+        [SerializeField] private bool _beforeValue;
+        [SerializeField] private bool _initialValue;
+
+        public bool Value { get => _value; set => _value = value; }
+
+        public bool IsChanged => _isChanged;
+        public bool BeforeValue => _beforeValue;
+
+        public bool InitialValue { get => _initialValue; set => _initialValue = value; }
+
+        public Bool(bool v)
+        {
+            _value = v;
+            _beforeValue = v;
+            _initialValue = v;
+            _isChanged = false;
+        }
+
+        public void OnUpdate(bool v)
+        {
+            _beforeValue = _value;
+            _value = v;
+            _isChanged = _beforeValue != _value;
+        }
+
+        public void OnUpdate()
+        {
+            _isChanged = _beforeValue != _value;
+            _beforeValue = _value;
+        }
+
+        public void Reset()
+        {
+            _beforeValue = _initialValue;
+            _value = _initialValue;
+            _isChanged = false;
+        }
+    }
+
+    [System.Serializable]
     public class Float
     {
         [SerializeField] private float _value;
@@ -132,53 +176,4 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
         }
     }
 
-    [System.Serializable]
-    public class Stateful<T> {
-        [SerializeField] private T _value;
-        [SerializeField] private bool _isChanged;
-        [SerializeField] private T _beforeValue;
-        [SerializeField] private T _initialValue;
-
-        public T Value { get => _value; set => _value = value; }
-        public System.Type Type => _value.GetType();
-        public bool IsChanged => _isChanged;
-
-        public T InitialValue { get => _initialValue; set => _initialValue = value; }
-
-        public Stateful(T v)
-        {
-            _value = v;
-            _beforeValue = v;
-            _initialValue = v;
-            _isChanged = false;
-        }
-
-        public void OnUpdate(T v)
-        {
-            _value = v;
-            _isChanged = _beforeValue.Equals(_value);
-            _beforeValue = _value;
-        }
-
-        public void OnUpdate()
-        {
-            _isChanged = _beforeValue.Equals(_value);
-            _beforeValue = _value;
-        }
-
-        public void Reset()
-        {
-            _isChanged = false;
-            _beforeValue = _initialValue;
-            _value = _initialValue;
-        }
-
-        public void Reset(T v)
-        {
-            _value = v;
-            _beforeValue = v;
-            _initialValue = v;
-            _isChanged = false;
-        }
-    }
 }
