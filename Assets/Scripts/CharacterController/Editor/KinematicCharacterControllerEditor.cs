@@ -35,6 +35,15 @@ public class KinematicCharacterControllerEditor : Editor
             Vector3 up = (c.pointUp - c.pointDown).normalized;
             Quaternion r = Quaternion.FromToRotation(Vector3.up, up);
             Handles.DrawWireArc(c.pointDown, r * Vector3.forward, r * Vector3.right, -180f, c.radius, 1f);
+            Handles.DrawWireArc(c.pointDown, r * Vector3.right, r * Vector3.forward, 180f, c.radius, 1f);
+            Handles.DrawWireArc(c.pointUp, r * Vector3.forward, r * Vector3.right, 180f, c.radius, 1f);
+            Handles.DrawWireArc(c.pointUp, r * Vector3.right, r * Vector3.forward, -180f, c.radius, 1f);
+            Handles.DrawWireDisc(c.pointUp, up, c.radius, 1f);
+            Handles.DrawWireDisc(c.pointDown, up, c.radius, 1f);
+            Handles.DrawLine(c.pointUp + r * Vector3.forward * c.radius, c.pointDown + r * Vector3.forward * c.radius, 1f);
+            Handles.DrawLine(c.pointUp - r * Vector3.forward * c.radius, c.pointDown - r * Vector3.forward * c.radius, 1f);
+            Handles.DrawLine(c.pointUp + r * Vector3.right * c.radius, c.pointDown + r * Vector3.right * c.radius, 1f);
+            Handles.DrawLine(c.pointUp - r * Vector3.right * c.radius, c.pointDown - r * Vector3.right * c.radius, 1f);
         }
     }
 
