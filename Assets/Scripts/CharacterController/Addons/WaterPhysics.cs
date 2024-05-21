@@ -19,7 +19,7 @@ public class WaterPhysics : MonoBehaviour
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
             kcc.IsDownStepEnabled = false;
             
-            kcc.AddForce(v - kcc.Velocity * 0.9f, this.gameObject);
+            kcc.AddForce(v - kcc.Velocity * 0.9f, this);
         }
     }
 
@@ -29,7 +29,7 @@ public class WaterPhysics : MonoBehaviour
         if (kcc != null) {
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
             kcc.IsDownStepEnabled = true;
-            kcc.AddForce(Vector3.zero, this.gameObject);
+            kcc.AddForce(Vector3.zero, this);
             //kcc.SetVelocity(Vector3.zero);
         }
     }

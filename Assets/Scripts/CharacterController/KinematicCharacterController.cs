@@ -124,7 +124,7 @@ public class KinematicCharacterController : MonoBehaviour
     readonly QueryTriggerInteraction queryTrigger = QueryTriggerInteraction.Ignore;
     readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
 
-    public Dictionary<GameObject, Vector3> accelerationGive, impulseGive;
+    public Dictionary<Object, Vector3> accelerationGive, impulseGive;
 
     public List<Capsule> positions;
 
@@ -148,8 +148,8 @@ public class KinematicCharacterController : MonoBehaviour
         _componentSettings._capsuleCollider.height = _height.Value - 2 * _physicsSettings._skinWidth;
         _componentSettings._capsuleCollider.radius = _radius.Value - _physicsSettings._skinWidth;
 
-        accelerationGive = new Dictionary<GameObject, Vector3>();
-        impulseGive = new Dictionary<GameObject, Vector3>();
+        accelerationGive = new Dictionary<Object, Vector3>();
+        impulseGive = new Dictionary<Object, Vector3>();
 
         positions = new List<Capsule>();
     }
@@ -339,8 +339,6 @@ public class KinematicCharacterController : MonoBehaviour
             velInit = vel;
             if (!gravityPass)
             {
-                //_isGroundedBefore = _isGrounded;
-                //_isGrounded = false;
                 _isGrounded.OnUpdate(false);
             }
         }
@@ -494,7 +492,7 @@ public class KinematicCharacterController : MonoBehaviour
         if (_isGrounded.Value) _airJump.Reset();
     }
 
-    private void CollisionPairUpdate(Dictionary<GameObject, Vector3> dict, GameObject from, Vector3 accel, ForceMode forceMode) {
+    private void CollisionPairUpdate(Dictionary<Object, Vector3> dict, Object from, Vector3 accel, ForceMode forceMode) {
         if (!dict.ContainsKey(from)) {
             if (accel == Vector3.zero) {
                 
@@ -520,7 +518,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     #region Public Methods
     
-    public void AddForce(Vector3 force, GameObject from, ForceMode forceMode = ForceMode.Force)
+    public void AddForce(Vector3 force, Object from, ForceMode forceMode = ForceMode.Force)
     {
         
         switch (forceMode) {
@@ -541,7 +539,7 @@ public class KinematicCharacterController : MonoBehaviour
     }
     
 
-    IEnumerator ExAccelReset(Dictionary<GameObject, Vector3> keyValuePairs, GameObject key) {
+    IEnumerator ExAccelReset(Dictionary<Object, Vector3> keyValuePairs, Object key) {
         while (keyValuePairs[key] != Vector3.zero) {
             yield return waitForFixedUpdate;
             switch (_externalMovementSettings._speedControlMode) {
@@ -578,15 +576,35 @@ public class KinematicCharacterController : MonoBehaviour
         yield return null;
     }
 
+    public void AddRelativeForce(Vector3 force, GameObject from, ForceMode forceMode = ForceMode.Force) {
+        AddForce(transform.TransformDirection(force), from, forceMode);
+    }
+
+    public Vector3 GetAccumulatedForce() {
+        return (accelerationGive.Aggregate(Vector3.zero, (acc, val) => acc + val.Value) + impulseGive.Aggregate(Vector3.zero, (acc, val) => acc + val.Value)) * rigidbody.mass;
+    }
+
     public void SetVelocity(Vector3 velocity)
     {
         _externalMovementSettings._velocity = velocity;
     }
 
-    public void SetPosition(Vector3 position)
+    public void MovePosition(Vector3 position)
     {
         _externalMovementSettings._position = position;
         _externalMovementSettings._isPositionSet = true;
     }
+
+    public void MoveRotation(Quaternion rotation) {
+        _forward = rotation * Vector3.forward;
+        _right = rotation * Vector3.right;
+        _playerUp = rotation * Vector3.up;
+    }
+
+    public void Move(Vector3 position, Quaternion rotation) {
+        MovePosition(position);
+        MoveRotation(rotation);
+    }
+
     #endregion
 }
