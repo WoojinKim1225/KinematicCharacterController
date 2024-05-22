@@ -105,9 +105,10 @@ public class KinematicCharacterController : MonoBehaviour
 
     private Vector3 _nextPositionWS;
 
-    //[SerializeField] private bool _isGrounded = false;
-    //private bool _isGroundedBefore;
     private Bool _isGrounded;
+    private Bool _isCollided;
+
+    private bool _isCollidedHorizontal, _isCollidedVertical;
     private int _groundedDepth;
     private Vector3 beforeWallNormal = Vector3.zero;
 
@@ -184,6 +185,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     private void InitStateful() {
         _isGrounded = new Bool(false);
+        _isCollided = new Bool(false);
         
         _height = new Float(IdleHeight);
         _radius = new Float(CapsuleRadius);
@@ -319,6 +321,8 @@ public class KinematicCharacterController : MonoBehaviour
         _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition + _height.Value * _playerUp.normalized * 0.5f, 0, false);
         _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition + _height.Value * _playerUp.normalized * 0.5f + _horizontalDisplacement, 0, true);
 
+        _isCollided.Value = _isCollidedHorizontal || _isCollidedVertical;
+
         if (!_isGrounded.Value && _isGrounded.BeforeValue)
         {
             groundExitDisplacement = _verticalDisplacement + Vector3.Dot(_horizontalDisplacement, gravityDirection) * gravityDirection;
@@ -337,8 +341,11 @@ public class KinematicCharacterController : MonoBehaviour
         if (depth == 0)
         {
             velInit = vel;
-            if (!gravityPass)
+            if (gravityPass)
             {
+                _isCollidedVertical = false;
+            } else {
+                _isCollidedHorizontal = false;
                 _isGrounded.OnUpdate(false);
             }
         }
@@ -352,6 +359,13 @@ public class KinematicCharacterController : MonoBehaviour
         if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _physicsSettings._whatIsGround, queryTrigger))
         {
             if (hit.collider.isTrigger) return CollideAndSlide(vel, pos, depth + 1, gravityPass);
+
+            if (gravityPass) {
+                _isCollidedVertical = true;
+            } else {
+                _isCollidedHorizontal = true;
+            }
+
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
             Vector3 leftover = vel - snapToSurface;
             float angle = Vector3.Angle(-gravityDirection, hit.normal);
@@ -467,6 +481,8 @@ public class KinematicCharacterController : MonoBehaviour
         _gravity.OnUpdate(Gravity);
         _jumpVelocity.IS.OnUpdate();
 
+        _isCollided.OnUpdate();
+
         if (_height.IsChanged)
         {
             _componentSettings._capsuleCollider.height = _height.Value - _skinWidth * 2f;
@@ -520,7 +536,6 @@ public class KinematicCharacterController : MonoBehaviour
     
     public void AddForce(Vector3 force, Object from, ForceMode forceMode = ForceMode.Force)
     {
-        
         switch (forceMode) {
             case ForceMode.Force:
                 CollisionPairUpdate(accelerationGive, from, force/_componentSettings._rigidbody.mass, forceMode);
@@ -542,29 +557,30 @@ public class KinematicCharacterController : MonoBehaviour
     IEnumerator ExAccelReset(Dictionary<Object, Vector3> keyValuePairs, Object key) {
         while (keyValuePairs[key] != Vector3.zero) {
             yield return waitForFixedUpdate;
+            float a = _isCollided.Value ? _externalMovementSettings._groundDeceleration : _externalMovementSettings._airDeceleration;
             switch (_externalMovementSettings._speedControlMode) {
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
                     keyValuePairs[key] = Vector3.zero;
                     keyValuePairs.Remove(key);
                     yield break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
-                    if (keyValuePairs[key].magnitude <= _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime) {
+                    if (keyValuePairs[key].magnitude <= a * Time.fixedDeltaTime) {
                         keyValuePairs[key] = Vector3.zero;
                         keyValuePairs.Remove(key);
                         yield break;
                     }
                     Vector3 horizontalAccel = Vector3.ProjectOnPlane(keyValuePairs[key], gravityDirection);
-                    horizontalAccel -= horizontalAccel.normalized * _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime;
+                    horizontalAccel -= horizontalAccel.normalized * a * Time.fixedDeltaTime;
                     keyValuePairs[key] = horizontalAccel;
                     break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
-                    if (keyValuePairs[key].magnitude <= _externalMovementSettings._moveAcceleration) {
+                    if (keyValuePairs[key].magnitude <= a) {
                         keyValuePairs[key] = Vector3.zero;
                         keyValuePairs.Remove(key);
                         yield break;
                     }
                     horizontalAccel = Vector3.ProjectOnPlane(keyValuePairs[key], gravityDirection);
-                    horizontalAccel -= horizontalAccel * _externalMovementSettings._moveAcceleration * Time.fixedDeltaTime;
+                    horizontalAccel -= horizontalAccel * a * Time.fixedDeltaTime;
                     keyValuePairs[key] = horizontalAccel;
                     break;
                 default:

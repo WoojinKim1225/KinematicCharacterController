@@ -5541,7 +5541,7 @@ MonoBehaviour:
   showGizmos: 0
   _cameraRotateReference: {fileID: -7845547105813481141, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
   kcc: {fileID: 5683782399313365360}
-  _cameraSensitivity: 100
+  _cameraSensitivity: 10
   cameraMode: 1
   _cameraUp: {x: 0, y: 1, z: 0}
   _targetOffset: {x: 0, y: 1.5, z: 0}
@@ -7125,6 +7125,10 @@ PrefabInstance:
     - target: {fileID: 1323770123963975694, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2608544442499120310, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: _externalMovementSettings._groundDeceleration
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_Name

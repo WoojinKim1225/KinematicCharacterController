@@ -116,7 +116,8 @@ namespace KinematicCharacterSettings
         public bool _isPositionSet;
 
         public KinematicCharacterSettingExtensions.ESpeedControlMode _speedControlMode = KinematicCharacterSettingExtensions.ESpeedControlMode.Linear;
-        public float _moveAcceleration = 10f;
+        public float _groundDeceleration = 1000f;
+        public float _airDeceleration = 10f;
     }
 
     [System.Serializable]
