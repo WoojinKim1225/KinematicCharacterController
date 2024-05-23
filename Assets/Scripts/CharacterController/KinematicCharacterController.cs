@@ -103,6 +103,25 @@ public class KinematicCharacterController : MonoBehaviour
 
     public Vector3 ExternalGroundMove { get => _externalMovementSettings._groundMove; set => _externalMovementSettings._groundMove = value; }
 
+    private Vector2Stateful _externalDecel, _externalDamp;
+
+    public float ExternalGroundDecel {set => _externalMovementSettings._groundDeceleration = value; }
+    public float ExternalGroundDamp {set => _externalMovementSettings._groundDamp = value; }
+    public float ExternalAirDecel {set => _externalMovementSettings._airDeceleration = value; }
+    public float ExternalAirDamp {set => _externalMovementSettings._airDamp = value; }
+
+    public void ExternalDecelReset() {
+        _externalMovementSettings._groundDeceleration = _externalDecel.InitialValue.x;
+        _externalMovementSettings._airDeceleration = _externalDecel.InitialValue.y;
+        _externalDecel.Reset();
+    }
+
+    public void ExternalDampReset() {
+        _externalMovementSettings._groundDamp = _externalDamp.InitialValue.x;
+        _externalMovementSettings._airDamp = _externalDamp.InitialValue.y;
+        _externalDamp.Reset();
+    }
+
     private Vector3 _nextPositionWS;
 
     private Bool _isGrounded;
@@ -198,6 +217,9 @@ public class KinematicCharacterController : MonoBehaviour
 
         _gravity = new Vector3Stateful(Gravity);
         _jumpVelocity.IS = new Float(0);
+
+        _externalDecel = new Vector2Stateful(_externalMovementSettings._groundDeceleration, _externalMovementSettings._airDeceleration);
+        _externalDamp = new Vector2Stateful(_externalMovementSettings._groundDamp, _externalMovementSettings._airDamp);
     }
 
     private void GetDirectionsFromView()
@@ -318,8 +340,8 @@ public class KinematicCharacterController : MonoBehaviour
 
         _groundedDepth = 0;
 
-        _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition + _height.Value * _playerUp.normalized * 0.5f, 0, false);
-        _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition + _height.Value * _playerUp.normalized * 0.5f + _horizontalDisplacement, 0, true);
+        _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _height.Value * gravityDirection * 0.5f, 0, false);
+        _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
 
         _isCollided.Value = _isCollidedHorizontal || _isCollidedVertical;
 
@@ -481,6 +503,9 @@ public class KinematicCharacterController : MonoBehaviour
         _gravity.OnUpdate(Gravity);
         _jumpVelocity.IS.OnUpdate();
 
+        _externalDecel.OnUpdate(_externalMovementSettings._groundDeceleration, _externalMovementSettings._airDeceleration);
+        _externalDamp.OnUpdate(_externalMovementSettings._groundDamp, _externalMovementSettings._airDamp);
+
         _isCollided.OnUpdate();
 
         if (_height.IsChanged)
@@ -557,13 +582,14 @@ public class KinematicCharacterController : MonoBehaviour
     IEnumerator ExAccelReset(Dictionary<Object, Vector3> keyValuePairs, Object key) {
         while (keyValuePairs[key] != Vector3.zero) {
             yield return waitForFixedUpdate;
-            float a = _isCollided.Value ? _externalMovementSettings._groundDeceleration : _externalMovementSettings._airDeceleration;
+            
             switch (_externalMovementSettings._speedControlMode) {
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
                     keyValuePairs[key] = Vector3.zero;
                     keyValuePairs.Remove(key);
                     yield break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
+                    float a = _isCollided.Value ? _externalDecel.Value.x : _externalDecel.Value.y;
                     if (keyValuePairs[key].magnitude <= a * Time.fixedDeltaTime) {
                         keyValuePairs[key] = Vector3.zero;
                         keyValuePairs.Remove(key);
@@ -574,6 +600,7 @@ public class KinematicCharacterController : MonoBehaviour
                     keyValuePairs[key] = horizontalAccel;
                     break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
+                    a = _isCollided.Value ? _externalDamp.Value.x : _externalDamp.Value.y;
                     if (keyValuePairs[key].magnitude <= a) {
                         keyValuePairs[key] = Vector3.zero;
                         keyValuePairs.Remove(key);
