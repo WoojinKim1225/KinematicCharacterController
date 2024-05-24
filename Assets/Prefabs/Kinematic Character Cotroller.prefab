@@ -162,8 +162,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _componentSettings:
     _dimension: 1
-    _capsuleColliderPrefab: {fileID: 6537117990884650962, guid: 0fc50b53db996bc4886638cdc13db7d8, type: 3}
-    _capsuleCollider2DPrefab: {fileID: 2207193865702169510, guid: 28a4f628167f37a4fa6b19de57cf2c76, type: 3}
     _rigidbody: {fileID: 0}
     _rigidbody2D: {fileID: 0}
     _capsuleCollider: {fileID: 0}
@@ -183,7 +181,15 @@ MonoBehaviour:
   _physicsSettings:
     _skinWidth: 0.01
     _maxBounces: 5
+    _gravityMode: 0
     _gravity: {x: 0, y: -20, z: 0}
+    _gravityList:
+    - verticalSpeedThreshold: 0
+      gravity: {x: 0, y: -20, z: 0}
+    - verticalSpeedThreshold: 1
+      gravity: {x: 0, y: -10, z: 0}
+    - verticalSpeedThreshold: -1
+      gravity: {x: 0, y: -40, z: 0}
     _whatIsGround:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -196,7 +202,7 @@ MonoBehaviour:
     _minCeilingAngle: 130
     _isUpStepEnabled: 1
     _maxStepUpHeight: 0.4
-    _isDownStepEnabled: 0
+    _isDownStepEnabled: 1
     _maxStepDownHeight: 0.4
   _externalMovementSettings:
     _groundMove: {x: 0, y: 0, z: 0}

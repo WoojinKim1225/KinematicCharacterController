@@ -1,19 +1,23 @@
+using System.Collections.Generic;
 using UnityEditor.EditorTools;
 using UnityEngine;
 
 
 namespace KinematicCharacterSettings
 {
+    [System.Serializable]
+    public struct GravitySet {
+        public float verticalSpeedThreshold;
+        public Vector3 gravity;
+    }
     
     [System.Serializable]
     public class ComponentSettings
     {
         public enum EDimension {
-        TwoDimension, ThreeDimension
-    }
+            TwoDimension, ThreeDimension
+        }
         public EDimension _dimension = EDimension.ThreeDimension;
-        public GameObject _capsuleColliderPrefab;
-        public GameObject _capsuleCollider2DPrefab;
         //[Tooltip("Kinematic Rigidbody of a character controller. Will auto allocate.")]
         public Rigidbody _rigidbody;
         public Rigidbody2D _rigidbody2D;
@@ -69,8 +73,16 @@ namespace KinematicCharacterSettings
         [Tooltip("Number of cycles used to process collider collisions.")]
         public int _maxBounces = 5;
 
+        public enum EGravityMode {
+            Single, Multiple
+        }
+
+        public EGravityMode _gravityMode = EGravityMode.Single;
+
         [Tooltip("Acceleration due to gravity affecting the character's movement.")]
         public Vector3 _gravity = Vector3.down * 20f;
+
+        public GravitySet[] _gravityList; 
 
         [Tooltip("Layer that collides with character's collider")]
         public LayerMask _whatIsGround = Physics.AllLayers;

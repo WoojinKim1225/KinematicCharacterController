@@ -37,18 +37,18 @@ public class KinematicCharacterController : MonoBehaviour
     public KinematicCharacterSettingExtensions.EMovementMode MovementMode {set => _movementSettings._movementMode = value; }
     public float JumpMaxHeight => _movementSettings._jumpMaxHeight;
 
-    private Float jumpSpeed, jumpMaxHeight;
-    private Float _airJump;
+    private Float jumpSpeedStateful, jumpMaxHeightStateful;
+    private Float _airJumpStateful;
 
     /*********************************************************************************************************/
 
     [SerializeField] private PhysicsSettings _physicsSettings = new PhysicsSettings();
 
     private float _skinWidth => _physicsSettings._skinWidth;
-    public Vector3 Gravity {get => _physicsSettings._gravity; set => _physicsSettings._gravity = value; }
+    //public Vector3 Gravity {get => _physicsSettings._gravity; set => _physicsSettings._gravity = value; }
 
-    private Vector3Stateful _gravity;
-    private Vector3 gravityDirection => _physicsSettings._gravity.normalized;
+    private Vector3Stateful _gravityStateful;
+    private Vector3 gravityDirection => _gravityStateful.Value.normalized;
     private Vector3 accelerationDirection => (_physicsSettings._gravity + _externalMovementSettings._acceleration).normalized;
 
     /*********************************************************************************************************/
@@ -58,10 +58,10 @@ public class KinematicCharacterController : MonoBehaviour
     public float IdleHeight => _characterSizeSettings._idleHeight;
     public float CrouchHeight => _characterSizeSettings._crouchHeight;
     public float CapsuleRadius => _characterSizeSettings._capsuleRadius;
-    public float CapsuleHeight => _height.Value;
+    public float CapsuleHeight => _heightStateful.Value;
 
-    private Float _height, _radius;
-    public float HeightValue => _height.Value;
+    private Float _heightStateful, _radiusStateful;
+    public float HeightValue => _heightStateful.Value;
 
     /*********************************************************************************************************/
 
@@ -104,7 +104,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     public Vector3 ExternalGroundMove { get => _externalMovementSettings._groundMove; set => _externalMovementSettings._groundMove = value; }
 
-    private Vector2Stateful _externalDecel, _externalDamp;
+    private Vector2Stateful _externalDecelStateful, _externalDampStateful;
 
     public float ExternalGroundDecel {set => _externalMovementSettings._groundDeceleration = value; }
     public float ExternalGroundDamp {set => _externalMovementSettings._groundDamp = value; }
@@ -112,21 +112,21 @@ public class KinematicCharacterController : MonoBehaviour
     public float ExternalAirDamp {set => _externalMovementSettings._airDamp = value; }
 
     public void ExternalDecelReset() {
-        _externalMovementSettings._groundDeceleration = _externalDecel.InitialValue.x;
-        _externalMovementSettings._airDeceleration = _externalDecel.InitialValue.y;
-        _externalDecel.Reset();
+        _externalMovementSettings._groundDeceleration = _externalDecelStateful.InitialValue.x;
+        _externalMovementSettings._airDeceleration = _externalDecelStateful.InitialValue.y;
+        _externalDecelStateful.Reset();
     }
 
     public void ExternalDampReset() {
-        _externalMovementSettings._groundDamp = _externalDamp.InitialValue.x;
-        _externalMovementSettings._airDamp = _externalDamp.InitialValue.y;
-        _externalDamp.Reset();
+        _externalMovementSettings._groundDamp = _externalDampStateful.InitialValue.x;
+        _externalMovementSettings._airDamp = _externalDampStateful.InitialValue.y;
+        _externalDampStateful.Reset();
     }
 
     private Vector3 _nextPositionWS;
 
     private Bool _isGrounded;
-    private Bool _isCollided;
+    private Bool _isCollidedStateful;
 
     private bool _isCollidedHorizontal, _isCollidedVertical;
     private int _groundedDepth;
@@ -155,24 +155,42 @@ public class KinematicCharacterController : MonoBehaviour
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        
 
-        if (_componentSettings._dimension == ComponentSettings.EDimension.ThreeDimension) {
-            _componentSettings._rigidbody = gameObject.AddComponent(typeof(Rigidbody)) as Rigidbody;
-            _componentSettings._rigidbody.mass = 1f;
-            _componentSettings._rigidbody.detectCollisions = true;
-            _componentSettings._rigidbody.isKinematic = true;
-            _componentSettings._rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            _componentSettings._rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        switch (_componentSettings._dimension) {
+            case ComponentSettings.EDimension.TwoDimension:
+                _componentSettings._rigidbody2D = gameObject.AddComponent<Rigidbody2D>();
+                _componentSettings._rigidbody2D.mass = 1f;
+                _componentSettings._rigidbody2D.isKinematic = true;
+                _componentSettings._rigidbody2D.interpolation = RigidbodyInterpolation2D.Interpolate;
+                _componentSettings._rigidbody2D.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
-            GameObject colliderObject = new GameObject("Collider", typeof(CapsuleCollider));
-            colliderObject.transform.SetParent(transform);
-            _componentSettings._capsuleCollider = colliderObject.GetComponent<CapsuleCollider>();
-            _componentSettings._capsuleCollider.transform.localPosition = Vector3.up;
-            _componentSettings._capsuleCollider.height = 2f;
-            _componentSettings._capsuleCollider.radius = 0.5f;
-            _componentSettings._capsuleCollider.bounds.Expand(-2 * _physicsSettings._skinWidth);
+                GameObject colliderObject = new GameObject("Collider", typeof(CapsuleCollider2D));
+                colliderObject.transform.SetParent(transform);
+                _componentSettings._capsuleCollider2D = colliderObject.GetComponent<CapsuleCollider2D>();
+                _componentSettings._capsuleCollider2D.transform.localPosition = Vector3.up;
+                _componentSettings._capsuleCollider2D.size = new Vector2(1f, 2f);
+                _componentSettings._capsuleCollider2D.bounds.Expand(-2 * _physicsSettings._skinWidth);
+                break;
+            case ComponentSettings.EDimension.ThreeDimension:
+                _componentSettings._rigidbody = gameObject.AddComponent(typeof(Rigidbody)) as Rigidbody;
+                _componentSettings._rigidbody.mass = 1f;
+                _componentSettings._rigidbody.detectCollisions = true;
+                _componentSettings._rigidbody.isKinematic = true;
+                _componentSettings._rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+                _componentSettings._rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+                colliderObject = new GameObject("Collider", typeof(CapsuleCollider));
+                colliderObject.transform.SetParent(transform);
+                _componentSettings._capsuleCollider = colliderObject.GetComponent<CapsuleCollider>();
+                _componentSettings._capsuleCollider.transform.localPosition = Vector3.up;
+                _componentSettings._capsuleCollider.height = 2f;
+                _componentSettings._capsuleCollider.radius = 0.5f;
+                _componentSettings._capsuleCollider.bounds.Expand(-2 * _physicsSettings._skinWidth);
+                break;
+            default:
+                break;
         }
-
 
         InitStateful();
 
@@ -191,7 +209,18 @@ public class KinematicCharacterController : MonoBehaviour
     {
         positions.Clear();
 
-        if (_isGrounded.Value) _airJump.Value = _airJump.InitialValue;
+        if (_physicsSettings._gravityMode == PhysicsSettings.EGravityMode.Single) {
+            _gravityStateful.Value = _physicsSettings._gravity;
+        } else {
+            _gravityStateful.Value = _physicsSettings._gravityList[0].gravity;
+            for (int i = 1; i < _physicsSettings._gravityList.Length; i++) {
+                if (_physicsSettings._gravityList[i].verticalSpeedThreshold > _verticalDisplacement.y / Time.fixedDeltaTime) {
+                    _gravityStateful.Value = _physicsSettings._gravityList[i].gravity;
+                }
+            }
+        }
+
+        if (_isGrounded.Value) _airJumpStateful.Value = _airJumpStateful.InitialValue;
 
         _componentSettings._capsuleCollider.transform.up = _playerUp.normalized;
 
@@ -212,22 +241,22 @@ public class KinematicCharacterController : MonoBehaviour
 
     private void InitStateful() {
         _isGrounded = new Bool(false);
-        _isCollided = new Bool(false);
+        _isCollidedStateful = new Bool(false);
         
-        _height = new Float(IdleHeight);
-        _radius = new Float(CapsuleRadius);
+        _heightStateful = new Float(IdleHeight);
+        _radiusStateful = new Float(CapsuleRadius);
 
-        jumpSpeed = new Float(_movementSettings._jumpSpeed);
-        jumpMaxHeight = new Float(Mathf.Sqrt(_movementSettings._jumpSpeed * _movementSettings._jumpSpeed * 0.5f / Mathf.Abs(Gravity.y)));
-        _movementSettings._jumpMaxHeight = _movementSettings._jumpSpeed * _movementSettings._jumpSpeed * 0.5f / Mathf.Abs(Gravity.y);
+        jumpSpeedStateful = new Float(_movementSettings._jumpSpeed);
+        jumpMaxHeightStateful = new Float(Mathf.Sqrt(_movementSettings._jumpSpeed * _movementSettings._jumpSpeed * 0.5f / Mathf.Abs(_physicsSettings._gravity.y)));
+        _movementSettings._jumpMaxHeight = _movementSettings._jumpSpeed * _movementSettings._jumpSpeed * 0.5f / Mathf.Abs(_physicsSettings._gravity.y);
 
-        _airJump = new Float(_movementSettings._maxAirJumpCount);
+        _airJumpStateful = new Float(_movementSettings._maxAirJumpCount);
 
-        _gravity = new Vector3Stateful(Gravity);
+        _gravityStateful = new Vector3Stateful(_physicsSettings._gravity);
         _jumpVelocity.IS = new Float(0);
 
-        _externalDecel = new Vector2Stateful(_externalMovementSettings._groundDeceleration, _externalMovementSettings._airDeceleration);
-        _externalDamp = new Vector2Stateful(_externalMovementSettings._groundDamp, _externalMovementSettings._airDamp);
+        _externalDecelStateful = new Vector2Stateful(_externalMovementSettings._groundDeceleration, _externalMovementSettings._airDeceleration);
+        _externalDampStateful = new Vector2Stateful(_externalMovementSettings._groundDamp, _externalMovementSettings._airDamp);
     }
 
     private void GetDirectionsFromView()
@@ -248,7 +277,7 @@ public class KinematicCharacterController : MonoBehaviour
     private void CalculateObjectSpaceVariables()
     {
         _jumpVelocity.OS = _isGrounded.Value && _jumpVelocity.IS.Value > 0 ? _movementSettings._jumpSpeed * (-gravityDirection) : Vector3.zero;
-        _jumpVelocity.OS += Gravity * Time.fixedDeltaTime * 0.5f;
+        _jumpVelocity.OS += _gravityStateful.Value * Time.fixedDeltaTime * 0.5f;
 
         _playerHeight.OS = _playerHeight.IS > 0 ? CrouchHeight : IdleHeight;
 
@@ -302,10 +331,10 @@ public class KinematicCharacterController : MonoBehaviour
         if (!_isGrounded.Value)
         {
             _groundNormal = -gravityDirection;
-            _jumpVelocity.WS += Gravity * Time.fixedDeltaTime;
-            if (_isJumpStarted && _airJump.Value-- > 0)
+            _jumpVelocity.WS += _gravityStateful.Value * Time.fixedDeltaTime;
+            if (_isJumpStarted && _airJumpStateful.Value-- > 0)
             {
-                 _jumpVelocity.WS = _jumpVelocity.IS.Value * _movementSettings._jumpSpeed * (-gravityDirection) + Gravity * Time.fixedDeltaTime * 0.5f;
+                 _jumpVelocity.WS = _jumpVelocity.IS.Value * _movementSettings._jumpSpeed * (-gravityDirection) + _gravityStateful.Value * Time.fixedDeltaTime * 0.5f;
             }
             else if (_isGrounded.BeforeValue && _jumpVelocity.IS.Value == 0 && _jumpVelocity.IS.BeforeValue == 0)
             {
@@ -340,7 +369,7 @@ public class KinematicCharacterController : MonoBehaviour
     {
         if (_externalMovementSettings._isPositionSet)
         {
-            _jumpVelocity.WS = _jumpVelocity.OS = Gravity * Time.fixedDeltaTime * 0.5f;
+            _jumpVelocity.WS = _jumpVelocity.OS = _gravityStateful.Value * Time.fixedDeltaTime * 0.5f;
             _componentSettings._rigidbody.MovePosition(_externalMovementSettings._position);
             _externalMovementSettings._isPositionSet = false;
             return;
@@ -348,10 +377,10 @@ public class KinematicCharacterController : MonoBehaviour
 
         _groundedDepth = 0;
 
-        _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _height.Value * gravityDirection * 0.5f, 0, false);
-        _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
+        _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _heightStateful.Value * gravityDirection * 0.5f, 0, false);
+        _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _heightStateful.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
 
-        _isCollided.Value = _isCollidedHorizontal || _isCollidedVertical;
+        _isCollidedStateful.Value = _isCollidedHorizontal || _isCollidedVertical;
 
         if (!_isGrounded.Value && _isGrounded.BeforeValue)
         {
@@ -381,12 +410,12 @@ public class KinematicCharacterController : MonoBehaviour
         }
 
         float dist = vel.magnitude + _physicsSettings._skinWidth;
-        Vector3 capsulePoint = (_height.Value * 0.5f - _radius.Value) * _playerUp.normalized;
-        Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radius.Value;
+        Vector3 capsulePoint = (_heightStateful.Value * 0.5f - _radiusStateful.Value) * _playerUp.normalized;
+        Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radiusStateful.Value;
         
-        positions.Add(new Capsule{pointUp = pos + capsulePoint, pointDown = pos - capsulePoint, radius = _radius.Value});
+        positions.Add(new Capsule{pointUp = pos + capsulePoint, pointDown = pos - capsulePoint, radius = _radiusStateful.Value});
 
-        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radius.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _physicsSettings._whatIsGround, queryTrigger))
+        if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radiusStateful.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _physicsSettings._whatIsGround, queryTrigger))
         {
             if (hit.collider.isTrigger) return CollideAndSlide(vel, pos, depth + 1, gravityPass);
 
@@ -395,6 +424,7 @@ public class KinematicCharacterController : MonoBehaviour
             } else {
                 _isCollidedHorizontal = true;
             }
+            accelerationGive = accelerationGive.ToDictionary(kvp => kvp.Key, kvp => Vector3.ProjectOnPlane(kvp.Value, hit.normal));
 
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
             Vector3 leftover = vel - snapToSurface;
@@ -480,10 +510,10 @@ public class KinematicCharacterController : MonoBehaviour
         {
             if (_stepAndSlopeHandleSettings._isDownStepEnabled)
             {
-                bool b = Physics.Raycast(pos + _moveVelocity.WS * Time.fixedDeltaTime, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepDownHeight + _height.Value * 0.5f, _physicsSettings._whatIsGround, queryTrigger);
+                bool b = Physics.Raycast(pos + _moveVelocity.WS * Time.fixedDeltaTime, gravityDirection, out RaycastHit h, _stepAndSlopeHandleSettings._maxStepDownHeight + _heightStateful.Value * 0.5f, _physicsSettings._whatIsGround, queryTrigger);
                 bool b1 = Physics.SphereCast(pos + _moveVelocity.WS * Time.fixedDeltaTime + capsulePoint, _componentSettings._capsuleCollider.bounds.extents.x, -_playerUp.normalized, out RaycastHit h2, capsulePoint.magnitude * 2f, _physicsSettings._whatIsGround, queryTrigger);
 
-                if (b && !b1 && h.distance > _height.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
+                if (b && !b1 && h.distance > _heightStateful.Value * 0.5f + _skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
                 {
                     _isStep = true;
 
@@ -503,42 +533,42 @@ public class KinematicCharacterController : MonoBehaviour
 
     private void UpdateProperties()
     {
-        _height.OnUpdate(_playerHeight.WS);
-        _radius.OnUpdate(CapsuleRadius);
-        jumpSpeed.OnUpdate(_movementSettings._jumpSpeed);
-        _airJump.OnUpdate();
-        jumpMaxHeight.OnUpdate(_movementSettings._jumpMaxHeight);
-        _gravity.OnUpdate(Gravity);
+        _heightStateful.OnUpdate(_playerHeight.WS);
+        _radiusStateful.OnUpdate(CapsuleRadius);
+        jumpSpeedStateful.OnUpdate(_movementSettings._jumpSpeed);
+        _airJumpStateful.OnUpdate();
+        jumpMaxHeightStateful.OnUpdate(_movementSettings._jumpMaxHeight);
+        _gravityStateful.OnUpdate();
         _jumpVelocity.IS.OnUpdate();
 
-        _externalDecel.OnUpdate(_externalMovementSettings._groundDeceleration, _externalMovementSettings._airDeceleration);
-        _externalDamp.OnUpdate(_externalMovementSettings._groundDamp, _externalMovementSettings._airDamp);
+        _externalDecelStateful.OnUpdate(_externalMovementSettings._groundDeceleration, _externalMovementSettings._airDeceleration);
+        _externalDampStateful.OnUpdate(_externalMovementSettings._groundDamp, _externalMovementSettings._airDamp);
 
-        _isCollided.OnUpdate();
+        _isCollidedStateful.OnUpdate();
 
-        if (_height.IsChanged)
+        if (_heightStateful.IsChanged)
         {
-            _componentSettings._capsuleCollider.height = _height.Value - _skinWidth * 2f;
-            _componentSettings._capsuleCollider.transform.localPosition = _playerUp.normalized * _height.Value * 0.5f;
+            _componentSettings._capsuleCollider.height = _heightStateful.Value - _skinWidth * 2f;
+            _componentSettings._capsuleCollider.transform.localPosition = _playerUp.normalized * _heightStateful.Value * 0.5f;
         }
 
-        if (_radius.IsChanged)
+        if (_radiusStateful.IsChanged)
         {
-            _componentSettings._capsuleCollider.radius = _radius.Value - _skinWidth;
+            _componentSettings._capsuleCollider.radius = _radiusStateful.Value - _skinWidth;
         }
 
-        if (jumpSpeed.IsChanged)
+        if (jumpSpeedStateful.IsChanged)
         {
-            _movementSettings._jumpMaxHeight = jumpSpeed.Value * jumpSpeed.Value * 0.5f / Mathf.Abs(Gravity.y);
-            jumpMaxHeight = new Float(_movementSettings._jumpMaxHeight);
+            _movementSettings._jumpMaxHeight = jumpSpeedStateful.Value * jumpSpeedStateful.Value * 0.5f / Mathf.Abs(_gravityStateful.Value.y);
+            jumpMaxHeightStateful = new Float(_movementSettings._jumpMaxHeight);
         }
-        else if (jumpMaxHeight.IsChanged)
+        else if (jumpMaxHeightStateful.IsChanged)
         {
-            _movementSettings._jumpSpeed = Mathf.Sqrt(2f * Mathf.Abs(Gravity.y) * jumpMaxHeight.Value);
-            jumpSpeed = new Float(_movementSettings._jumpSpeed);
+            _movementSettings._jumpSpeed = Mathf.Sqrt(2f * Mathf.Abs(_gravityStateful.Value.y) * jumpMaxHeightStateful.Value);
+            jumpSpeedStateful = new Float(_movementSettings._jumpSpeed);
         }
 
-        if (_isGrounded.Value) _airJump.Reset();
+        if (_isGrounded.Value) _airJumpStateful.Reset();
     }
 
     private void CollisionPairUpdate(Dictionary<Object, Vector3> dict, Object from, Vector3 accel, ForceMode forceMode) {
@@ -597,7 +627,7 @@ public class KinematicCharacterController : MonoBehaviour
                     keyValuePairs.Remove(key);
                     yield break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
-                    float a = _isCollided.Value ? _externalDecel.Value.x : _externalDecel.Value.y;
+                    float a = _isCollidedStateful.Value ? _externalDecelStateful.Value.x : _externalDecelStateful.Value.y;
                     if (keyValuePairs[key].magnitude <= a * Time.fixedDeltaTime) {
                         keyValuePairs[key] = Vector3.zero;
                         keyValuePairs.Remove(key);
@@ -608,7 +638,7 @@ public class KinematicCharacterController : MonoBehaviour
                     keyValuePairs[key] = horizontalAccel;
                     break;
                 case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
-                    a = _isCollided.Value ? _externalDamp.Value.x : _externalDamp.Value.y;
+                    a = _isCollidedStateful.Value ? _externalDampStateful.Value.x : _externalDampStateful.Value.y;
                     if (keyValuePairs[key].magnitude <= a) {
                         keyValuePairs[key] = Vector3.zero;
                         keyValuePairs.Remove(key);
