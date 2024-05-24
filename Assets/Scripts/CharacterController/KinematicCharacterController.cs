@@ -14,15 +14,16 @@ public struct Capsule {
     public float radius;
 }
 
-[RequireComponent(typeof(Rigidbody))]
+
 public class KinematicCharacterController : MonoBehaviour
 {
     #region Variables
 
     [SerializeField] private ComponentSettings _componentSettings = new ComponentSettings();
     
-    public new Rigidbody rigidbody => _componentSettings._rigidbody;
-    private Vector3 _rigidbodyPosition => _componentSettings._rigidbody.transform.position;
+    //public new Rigidbody rigidbody => _componentSettings._rigidbody;
+    private Vector3 _rigidbodyPosition => _componentSettings._dimension == ComponentSettings.EDimension.ThreeDimension ? _componentSettings._rigidbody.transform.position : _componentSettings._rigidbody2D.transform.position;
+    public float mass => _componentSettings._dimension == ComponentSettings.EDimension.ThreeDimension ? _componentSettings._rigidbody.mass : _componentSettings._rigidbody2D.mass;
 
     /*********************************************************************************************************/
 
@@ -155,18 +156,25 @@ public class KinematicCharacterController : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        _componentSettings._rigidbody = GetComponent<Rigidbody>();
-        _componentSettings._capsuleCollider = GetComponentInChildren<CapsuleCollider>();
+        if (_componentSettings._dimension == ComponentSettings.EDimension.ThreeDimension) {
+            _componentSettings._rigidbody = gameObject.AddComponent(typeof(Rigidbody)) as Rigidbody;
+            _componentSettings._rigidbody.mass = 1f;
+            _componentSettings._rigidbody.detectCollisions = true;
+            _componentSettings._rigidbody.isKinematic = true;
+            _componentSettings._rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+            _componentSettings._rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-        _componentSettings._rigidbody.detectCollisions = true;
-        _componentSettings._rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        _componentSettings._rigidbody.isKinematic = true;
+            GameObject colliderObject = new GameObject("Collider", typeof(CapsuleCollider));
+            colliderObject.transform.SetParent(transform);
+            _componentSettings._capsuleCollider = colliderObject.GetComponent<CapsuleCollider>();
+            _componentSettings._capsuleCollider.transform.localPosition = Vector3.up;
+            _componentSettings._capsuleCollider.height = 2f;
+            _componentSettings._capsuleCollider.radius = 0.5f;
+            _componentSettings._capsuleCollider.bounds.Expand(-2 * _physicsSettings._skinWidth);
+        }
+
 
         InitStateful();
-
-        _componentSettings._capsuleCollider.bounds.Expand(-2 * _physicsSettings._skinWidth);
-        _componentSettings._capsuleCollider.height = _height.Value - 2 * _physicsSettings._skinWidth;
-        _componentSettings._capsuleCollider.radius = _radius.Value - _physicsSettings._skinWidth;
 
         accelerationGive = new Dictionary<Object, Vector3>();
         impulseGive = new Dictionary<Object, Vector3>();
@@ -624,7 +632,7 @@ public class KinematicCharacterController : MonoBehaviour
     }
 
     public Vector3 GetAccumulatedForce() {
-        return (accelerationGive.Aggregate(Vector3.zero, (acc, val) => acc + val.Value) + impulseGive.Aggregate(Vector3.zero, (acc, val) => acc + val.Value)) * rigidbody.mass;
+        return (accelerationGive.Aggregate(Vector3.zero, (acc, val) => acc + val.Value) + impulseGive.Aggregate(Vector3.zero, (acc, val) => acc + val.Value)) * mass;
     }
 
     public void SetVelocity(Vector3 velocity)

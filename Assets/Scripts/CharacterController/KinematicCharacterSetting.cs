@@ -4,15 +4,23 @@ using UnityEngine;
 
 namespace KinematicCharacterSettings
 {
-
+    
     [System.Serializable]
     public class ComponentSettings
     {
-        [Tooltip("Kinematic Rigidbody of a character controller. Will auto allocate.")]
+        public enum EDimension {
+        TwoDimension, ThreeDimension
+    }
+        public EDimension _dimension = EDimension.ThreeDimension;
+        public GameObject _capsuleColliderPrefab;
+        public GameObject _capsuleCollider2DPrefab;
+        //[Tooltip("Kinematic Rigidbody of a character controller. Will auto allocate.")]
         public Rigidbody _rigidbody;
+        public Rigidbody2D _rigidbody2D;
 
-        [Tooltip("The capsule collider belonging to the character controller's child. Will auto allocate.")]
+        //[Tooltip("The capsule collider belonging to the character controller's child. Will auto allocate.")]
         public CapsuleCollider _capsuleCollider;
+        public CapsuleCollider2D _capsuleCollider2D;
     }
 
     [System.Serializable]
