@@ -344,17 +344,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Moving Surface
       objectReference: {fileID: 0}
+    - target: {fileID: 7164954527266891319, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8291147653505082866, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 18.296944
+      value: 18.29694
       objectReference: {fileID: 0}
     - target: {fileID: 8291147653505082866, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.0000038146973
+      value: -0.000003814697
       objectReference: {fileID: 0}
     - target: {fileID: 8291147653505082866, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3.0423498
+      value: 3.04235
       objectReference: {fileID: 0}
     - target: {fileID: 8291147653505082866, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
       propertyPath: m_LocalRotation.w
@@ -383,10 +387,6 @@ PrefabInstance:
     - target: {fileID: 8291147653505082866, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8737330464756401516, guid: a518af75164a15d4e9f6dddcf3fcfe73, type: 3}
-      propertyPath: kcc
-      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1784,10 +1784,8 @@ MonoBehaviour:
   kcc: {fileID: 5683782399313365363}
   v: {x: 0, y: 0, z: 0}
   waterHeightWS: -1
-  externalGroundDecel: 1000
-  externalAirDecel: 1000
-  externalGroundDamp: 10
-  externalAirDamp: 10
+  externalContactDrag: 20
+  externalAirDrag: 0.4
 --- !u!65 &1428172811
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1878,7 +1876,7 @@ MonoBehaviour:
   b: 0
   b1: 0
   v: {x: 0, y: 500, z: 0}
-  f: 1000
+  f: 400
 --- !u!4 &1570806790
 Transform:
   m_ObjectHideFlags: 0

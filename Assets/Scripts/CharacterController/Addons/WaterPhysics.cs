@@ -9,8 +9,7 @@ public class WaterPhysics : MonoBehaviour
     public Vector3 v;
     public float waterHeightWS;
 
-    public float externalGroundDecel, externalAirDecel;
-    public float externalGroundDamp, externalAirDamp;
+    public float externalContactDrag, externalAirDrag;
     
     void OnTriggerEnter(Collider other)
     {
@@ -19,10 +18,8 @@ public class WaterPhysics : MonoBehaviour
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
             kcc.IsDownStepEnabled = false;
 
-            kcc.ExternalGroundDecel = externalGroundDecel;
-            kcc.ExternalAirDecel = externalAirDecel;
-            kcc.ExternalGroundDamp = externalGroundDamp;
-            kcc.ExternalAirDamp = externalAirDamp;
+            kcc.ExternalContactDrag = externalContactDrag;
+            kcc.ExternalAirDrag = externalAirDrag;
         }
     }
 
@@ -30,7 +27,7 @@ public class WaterPhysics : MonoBehaviour
     {
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
-            v = Vector3.Lerp(Vector3.zero, Vector3.up * 21f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
+            v = Vector3.Lerp(Vector3.zero, Vector3.up * 25f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
             
             kcc.AddForce(v - kcc.Velocity * 0.9f, this);
         }
@@ -43,8 +40,7 @@ public class WaterPhysics : MonoBehaviour
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
             kcc.IsDownStepEnabled = true;
             kcc.AddForce(Vector3.zero, this);
-            kcc.ExternalDampReset();
-            kcc.ExternalDecelReset();
+            kcc.ExternalDragReset();
         }
     }
 }

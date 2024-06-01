@@ -14,10 +14,8 @@ namespace KinematicCharacterSettings
     [System.Serializable]
     public class ComponentSettings
     {
-        public enum EDimension {
-            TwoDimension, ThreeDimension
-        }
-        public EDimension _dimension = EDimension.ThreeDimension;
+        
+        public KinematicCharacterSettingExtensions.EDimension _dimension = KinematicCharacterSettingExtensions.EDimension.ThreeDimension;
         //[Tooltip("Kinematic Rigidbody of a character controller. Will auto allocate.")]
         public Rigidbody _rigidbody;
         public Rigidbody2D _rigidbody2D;
@@ -73,11 +71,9 @@ namespace KinematicCharacterSettings
         [Tooltip("Number of cycles used to process collider collisions.")]
         public int _maxBounces = 5;
 
-        public enum EGravityMode {
-            Single, Multiple
-        }
+        
 
-        public EGravityMode _gravityMode = EGravityMode.Single;
+        public KinematicCharacterSettingExtensions.EGravityMode _gravityMode = KinematicCharacterSettingExtensions.EGravityMode.Single;
 
         [Tooltip("Acceleration due to gravity affecting the character's movement.")]
         public Vector3 _gravity = Vector3.down * 20f;
@@ -135,11 +131,8 @@ namespace KinematicCharacterSettings
         public Vector3 _position;
         public bool _isPositionSet;
 
-        public KinematicCharacterSettingExtensions.ESpeedControlMode _speedControlMode = KinematicCharacterSettingExtensions.ESpeedControlMode.Linear;
-        public float _groundDeceleration = 4000f;
-        public float _airDeceleration = 400f;
-        public float _groundDamp = 15f;
-        public float _airDamp = 1f;
+        public float _contactDrag = 0.5f;
+        public float _airDrag = 1f;
     }
 
     [System.Serializable]
@@ -153,7 +146,9 @@ namespace KinematicCharacterSettings
 
     public static class KinematicCharacterSettingExtensions
     {
-        public enum ESpeedControlMode { Constant, Linear, Exponential };
-        public enum EMovementMode { Ground, Swim };
+        public enum EDimension {TwoDimension, ThreeDimension}
+        public enum ESpeedControlMode { Constant, Linear, Exponential }
+        public enum EMovementMode { Ground, Swim }
+        public enum EGravityMode {Single, Multiple}
     }
 }

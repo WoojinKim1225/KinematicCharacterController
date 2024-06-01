@@ -175,7 +175,7 @@ MonoBehaviour:
     _crouchSpeedMultiplier: 0.5
     _maxAirJumpCount: 5
     _speedControlMode: 1
-    _moveAcceleration: 25
+    _moveAcceleration: 40
     _moveDamp: 10
     _movementMode: 0
   _physicsSettings:
@@ -192,13 +192,13 @@ MonoBehaviour:
       gravity: {x: 0, y: -40, z: 0}
     _whatIsGround:
       serializedVersion: 2
-      m_Bits: 4294967295
+      m_Bits: 1
   _characterSizeSettings:
     _idleHeight: 2
     _crouchHeight: 1.2
     _capsuleRadius: 0.5
   _stepAndSlopeHandleSettings:
-    _maxSlopeAngle: 55
+    _maxSlopeAngle: 50
     _minCeilingAngle: 130
     _isUpStepEnabled: 1
     _maxStepUpHeight: 0.4
@@ -206,17 +206,15 @@ MonoBehaviour:
     _maxStepDownHeight: 0.4
   _externalMovementSettings:
     _groundMove: {x: 0, y: 0, z: 0}
-    _acceleration: {x: -2.1719, y: 20.06459, z: -13.76278}
+    _acceleration: {x: 0, y: 0, z: 0}
     _velocity: {x: 0, y: 0, z: 0}
     _position: {x: 0, y: 0, z: 0}
     _isPositionSet: 0
-    _speedControlMode: 1
-    _groundDeceleration: 4000
-    _airDeceleration: 400
-    _groundDamp: 15
-    _airDamp: 1
+    _contactDrag: 8
+    _airDrag: 0.05
   _groundNormal: {x: -0, y: 1, z: -0}
   _playerUp: {x: 0, y: 1, z: 0}
+  impulseGive: {x: 0, y: 0, z: 0}
   positions:
   - pointUp: {x: 6.0603566, y: -5.3766766, z: -33.800575}
     pointDown: {x: 6.0603566, y: -6.3766766, z: -33.800575}
