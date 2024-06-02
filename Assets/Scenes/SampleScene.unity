@@ -1876,7 +1876,7 @@ MonoBehaviour:
   b: 0
   b1: 0
   v: {x: 0, y: 500, z: 0}
-  f: 400
+  f: 800
 --- !u!4 &1570806790
 Transform:
   m_ObjectHideFlags: 0

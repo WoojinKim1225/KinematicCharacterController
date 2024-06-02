@@ -23,8 +23,6 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 _rigidbodyPosition => _componentSettings._dimension == KinematicCharacterSettingExtensions.EDimension.ThreeDimension ? _componentSettings._rigidbody.transform.position : _componentSettings._rigidbody2D.transform.position;
     public float mass => _componentSettings._dimension == KinematicCharacterSettingExtensions.EDimension.ThreeDimension ? _componentSettings._rigidbody.mass : _componentSettings._rigidbody2D.mass;
 
-    /*********************************************************************************************************/
-
     [SerializeField] private MovementSettings _movementSettings = new MovementSettings();
 
     public Vector3 ViewDirection { get => _movementSettings._viewDirection; set => _movementSettings._viewDirection = value; }
@@ -38,12 +36,9 @@ public class KinematicCharacterController : MonoBehaviour
     private Float jumpSpeedStateful, jumpMaxHeightStateful;
     private Float _airJumpStateful;
 
-    /*********************************************************************************************************/
-
     [SerializeField] private PhysicsSettings _physicsSettings = new PhysicsSettings();
 
     private float _skinWidth => _physicsSettings._skinWidth;
-    //public Vector3 Gravity {get => _physicsSettings._gravity; set => _physicsSettings._gravity = value; }
 
     private Vector3Stateful _gravityStateful;
     private Vector3 gravityDirection => _gravityStateful.Value.normalized;
@@ -220,13 +215,6 @@ public class KinematicCharacterController : MonoBehaviour
         beforeWallNormal = Vector3.zero;
 
         HandleCollisionsAndMovement();
-
-        /*
-        foreach(var i in accelerationGive) {
-            if (i.Value == Vector3.zero)
-                accelerationGive.Remove(i.Key);
-        }
-        */
         accelerationGive = Vector3.zero;
 
         impulseGive = Vector3.zero;
@@ -272,9 +260,10 @@ public class KinematicCharacterController : MonoBehaviour
         if (_physicsSettings._gravityMode == KinematicCharacterSettingExtensions.EGravityMode.Single) {
             _gravityStateful.Value = _physicsSettings._gravity;
         } else {
+            float verticalSpeed = _verticalDisplacement.y / Time.fixedDeltaTime;
             _gravityStateful.Value = _physicsSettings._gravityList[0].gravity;
             for (int i = 1; i < _physicsSettings._gravityList.Length; i++) {
-                if (_physicsSettings._gravityList[i].verticalSpeedThreshold > _verticalDisplacement.y / Time.fixedDeltaTime) {
+                if (_physicsSettings._gravityList[i].verticalSpeedThreshold > verticalSpeed) {
                     _gravityStateful.Value = _physicsSettings._gravityList[i].gravity;
                 }
             }
@@ -426,8 +415,8 @@ public class KinematicCharacterController : MonoBehaviour
         float dist = vel.magnitude + _physicsSettings._skinWidth;
         Vector3 capsulePoint = (_heightStateful.Value * 0.5f - _radiusStateful.Value) * _playerUp.normalized;
         Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radiusStateful.Value;
-        
-        positions.Add(new Capsule{pointUp = pos + capsulePoint, pointDown = pos - capsulePoint, radius = _radiusStateful.Value});
+
+        positions.Add(new Capsule{pointUp = pos + vel * 10f + capsulePoint, pointDown = pos + vel * 10f - capsulePoint, radius = _radiusStateful.Value});
 
         if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radiusStateful.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _physicsSettings._whatIsGround, queryTrigger))
         {
@@ -441,13 +430,6 @@ public class KinematicCharacterController : MonoBehaviour
                     break;
                 case 1:
                     _isCollidedVertical = true;
-                    /*
-                    foreach (KeyValuePair<Object, Vector3> kvp in accelerationGive)
-                    {
-                        Vector3 projectedValue = Vector3.ProjectOnPlane(kvp.Value, hit.normal);
-                        accelerationGive[kvp.Key] = projectedValue;
-                    }
-                    */
                     break;
                 default:
                     break;
@@ -461,11 +443,6 @@ public class KinematicCharacterController : MonoBehaviour
 
             // the terrain is inside the collider
             if (snapToSurface.magnitude <= _skinWidth) snapToSurface = Vector3.zero;
-
-            if (state == 2) {
-                leftover = projectAndScale(leftover, hit.normal) * scale;
-                return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, state, velInit);
-            }
 
             // if flat ground or slope
             if (angle <= _stepAndSlopeHandleSettings._maxSlopeAngle || _isStep)
@@ -602,28 +579,6 @@ public class KinematicCharacterController : MonoBehaviour
         if (_isGrounded.Value) _airJumpStateful.Reset();
     }
 
-    private void CollisionPairUpdate(Dictionary<Object, Vector3> dict, Object from, Vector3 accel, ForceMode forceMode) {
-        if (!dict.ContainsKey(from)) {
-            if (accel == Vector3.zero) {
-                
-            } else {
-                dict.Add(from, accel);
-                //if (forceMode == ForceMode.Impulse || forceMode == ForceMode.VelocityChange)
-                    //StartCoroutine(ExAccelReset(dict, from));
-            }
-        }
-        else {
-            if (accel == Vector3.zero) {
-                
-            }
-            else if (forceMode == ForceMode.Impulse || forceMode == ForceMode.VelocityChange) {
-                dict[from] += accel;
-            } else {
-                dict[from] = accel;
-            }
-        }
-    }
-
     #endregion
 
     #region Public Methods
@@ -632,18 +587,15 @@ public class KinematicCharacterController : MonoBehaviour
     {
         switch (forceMode) {
             case ForceMode.Force:
-                //CollisionPairUpdate(accelerationGive, from, force/_componentSettings._rigidbody.mass, forceMode);
                 accelerationGive += force/mass;
             break;
             case ForceMode.Impulse:
-                //CollisionPairUpdate(impulseGive, from, force/_componentSettings._rigidbody.mass, forceMode);
                 impulseGive += force/mass;
             break;
             case ForceMode.Acceleration:
                 accelerationGive += force;
             break;
             case ForceMode.VelocityChange:
-                //CollisionPairUpdate(impulseGive, from, force, forceMode);
                 impulseGive += force;
             break;
         }
