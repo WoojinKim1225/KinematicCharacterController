@@ -138,8 +138,6 @@ public class KinematicCharacterController : MonoBehaviour
     public Vector3 accelerationGive;
     public Vector3 impulseGive;
 
-    public List<Capsule> positions;
-
     #endregion
 
     void Awake()
@@ -184,9 +182,6 @@ public class KinematicCharacterController : MonoBehaviour
         }
 
         InitStateful();
-
-        //accelerationGive = new Dictionary<Object, Vector3>();
-        //impulseGive = new Dictionary<Object, Vector3>();
     }
 
     void Update()
@@ -196,8 +191,6 @@ public class KinematicCharacterController : MonoBehaviour
 
     void FixedUpdate()
     {
-        positions.Clear();
-
         UpdateGravity();
 
         if (_isGrounded.Value) _airJumpStateful.Value = _airJumpStateful.InitialValue;
@@ -352,12 +345,11 @@ public class KinematicCharacterController : MonoBehaviour
         if (_externalMovementSettings._velocity.magnitude < Time.fixedDeltaTime * drag)
             _externalMovementSettings._velocity = Vector3.zero;
 
-        _externalMovementSettings._velocity = _externalMovementSettings._velocity * (1 - drag / mass * Time.fixedDeltaTime);
+        _externalMovementSettings._velocity *= (1 - drag / mass * Time.fixedDeltaTime);
 
         _jumpVelocity.WS += Vector3.Project(_externalMovementSettings._velocity - _externalVelocityBefore, gravityDirection);
         _moveVelocity.WS += Vector3.ProjectOnPlane(_externalMovementSettings._velocity, gravityDirection);
 
-        _externalVelocityBefore = _externalMovementSettings._velocity;
 
         _playerHeight.WS = _playerHeight.OS * transform.localScale.y;
     }
@@ -377,7 +369,7 @@ public class KinematicCharacterController : MonoBehaviour
         _horizontalDisplacement = CollideAndSlide(_moveVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _heightStateful.Value * gravityDirection * 0.5f, 0, 0);
         _verticalDisplacement = CollideAndSlide(_jumpVelocity.WS * Time.fixedDeltaTime, _rigidbodyPosition - _heightStateful.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, 1);
 
-
+        _externalVelocityBefore = _externalMovementSettings._velocity;
 
         _isCollidedStateful.Value = _isCollidedHorizontal || _isCollidedVertical;
 
@@ -416,8 +408,6 @@ public class KinematicCharacterController : MonoBehaviour
         Vector3 capsulePoint = (_heightStateful.Value * 0.5f - _radiusStateful.Value) * _playerUp.normalized;
         Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * _radiusStateful.Value;
 
-        positions.Add(new Capsule{pointUp = pos + vel * 10f + capsulePoint, pointDown = pos + vel * 10f - capsulePoint, radius = _radiusStateful.Value});
-
         if (Physics.CapsuleCast(pos + capsulePoint, pos - capsulePoint, _radiusStateful.Value + _physicsSettings._skinWidth, vel.normalized, out hit, dist, _physicsSettings._whatIsGround, queryTrigger))
         {
             if (hit.collider.isTrigger) return CollideAndSlide(vel, pos, depth + 1, state);
@@ -435,7 +425,7 @@ public class KinematicCharacterController : MonoBehaviour
                     break;
             }
 
-            _externalMovementSettings._velocity = Vector3.ProjectOnPlane(_externalMovementSettings._velocity, hit.normal);
+            if (Vector3.Dot(_externalMovementSettings._velocity, hit.normal) < 0) _externalMovementSettings._velocity = Vector3.ProjectOnPlane(_externalMovementSettings._velocity, hit.normal);
 
             Vector3 snapToSurface = vel.normalized * (hit.distance - _skinWidth);
             Vector3 leftover = vel - snapToSurface;

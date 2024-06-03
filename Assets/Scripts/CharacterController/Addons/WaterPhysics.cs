@@ -7,6 +7,7 @@ public class WaterPhysics : MonoBehaviour
 {
     public KinematicCharacterController kcc;
     public Vector3 v;
+    public float f;
     public float waterHeightWS;
 
     public float externalContactDrag, externalAirDrag;
@@ -18,8 +19,8 @@ public class WaterPhysics : MonoBehaviour
             kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
             kcc.IsDownStepEnabled = false;
 
-            kcc.ExternalContactDrag = externalContactDrag;
-            kcc.ExternalAirDrag = externalAirDrag;
+            //kcc.ExternalContactDrag = externalContactDrag;
+            //kcc.ExternalAirDrag = externalAirDrag;
         }
     }
 
@@ -27,7 +28,7 @@ public class WaterPhysics : MonoBehaviour
     {
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
-            v = Vector3.Lerp(Vector3.zero, Vector3.up * 25f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
+            v = Vector3.Lerp(Vector3.zero, Vector3.up * f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
             
             kcc.AddForce(v - kcc.Velocity * 0.9f, this);
         }

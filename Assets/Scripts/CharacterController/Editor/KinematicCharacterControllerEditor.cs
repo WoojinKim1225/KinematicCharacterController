@@ -30,6 +30,7 @@ public class KinematicCharacterControllerEditor : Editor
 
     private void OnSceneGUI() {
         KinematicCharacterController controller = (KinematicCharacterController)target;
+        /*
         foreach (Capsule c in controller.positions) {
             Handles.color = Color.white;
             Vector3 up = (c.pointUp - c.pointDown).normalized;
@@ -45,6 +46,7 @@ public class KinematicCharacterControllerEditor : Editor
             Handles.DrawLine(c.pointUp + r * Vector3.right * c.radius, c.pointDown + r * Vector3.right * c.radius, 1f);
             Handles.DrawLine(c.pointUp - r * Vector3.right * c.radius, c.pointDown - r * Vector3.right * c.radius, 1f);
         }
+        */
     }
 
     int DrawShapes()

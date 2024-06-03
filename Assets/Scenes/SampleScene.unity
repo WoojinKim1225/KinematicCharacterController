@@ -38,6 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1129,7 +1130,7 @@ MonoBehaviour:
   showGizmos: 0
   _cameraRotateReference: {fileID: -7845547105813481141, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
   kcc: {fileID: 5683782399313365363}
-  _cameraSensitivity: 20
+  _cameraSensitivity: 100
   cameraMode: 1
   _cameraUp: {x: 0, y: 1, z: 0}
   _targetOffset: {x: 0, y: 1.5, z: 0}
@@ -1177,12 +1178,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    m_Quality: 3
-    m_FrameInfluence: 0.1
-    m_JitterScale: 1
-    m_MipBias: 0
-    m_VarianceClampScale: 0.9
-    m_ContrastAdaptiveSharpening: 0
+    quality: 3
+    frameInfluence: 0.1
+    jitterScale: 1
+    mipBias: 0
+    varianceClampScale: 0.9
+    contrastAdaptiveSharpening: 0
 --- !u!1 &1172885407
 GameObject:
   m_ObjectHideFlags: 0
@@ -1783,6 +1784,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   kcc: {fileID: 5683782399313365363}
   v: {x: 0, y: 0, z: 0}
+  f: 40
   waterHeightWS: -1
   externalContactDrag: 20
   externalAirDrag: 0.4
@@ -2547,6 +2549,10 @@ PrefabInstance:
     - target: {fileID: 21986974509844446, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: _characterSizeSettings._idleHeight
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_Name
