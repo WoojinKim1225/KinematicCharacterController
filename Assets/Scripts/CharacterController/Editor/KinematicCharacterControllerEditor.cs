@@ -27,28 +27,6 @@ public class KinematicCharacterControllerEditor : Editor
 
         base.OnInspectorGUI();
     }
-
-    private void OnSceneGUI() {
-        KinematicCharacterController controller = (KinematicCharacterController)target;
-        /*
-        foreach (Capsule c in controller.positions) {
-            Handles.color = Color.white;
-            Vector3 up = (c.pointUp - c.pointDown).normalized;
-            Quaternion r = Quaternion.FromToRotation(Vector3.up, up);
-            Handles.DrawWireArc(c.pointDown, r * Vector3.forward, r * Vector3.right, -180f, c.radius, 1f);
-            Handles.DrawWireArc(c.pointDown, r * Vector3.right, r * Vector3.forward, 180f, c.radius, 1f);
-            Handles.DrawWireArc(c.pointUp, r * Vector3.forward, r * Vector3.right, 180f, c.radius, 1f);
-            Handles.DrawWireArc(c.pointUp, r * Vector3.right, r * Vector3.forward, -180f, c.radius, 1f);
-            Handles.DrawWireDisc(c.pointUp, up, c.radius, 1f);
-            Handles.DrawWireDisc(c.pointDown, up, c.radius, 1f);
-            Handles.DrawLine(c.pointUp + r * Vector3.forward * c.radius, c.pointDown + r * Vector3.forward * c.radius, 1f);
-            Handles.DrawLine(c.pointUp - r * Vector3.forward * c.radius, c.pointDown - r * Vector3.forward * c.radius, 1f);
-            Handles.DrawLine(c.pointUp + r * Vector3.right * c.radius, c.pointDown + r * Vector3.right * c.radius, 1f);
-            Handles.DrawLine(c.pointUp - r * Vector3.right * c.radius, c.pointDown - r * Vector3.right * c.radius, 1f);
-        }
-        */
-    }
-
     int DrawShapes()
     {
         KinematicCharacterController controller = (KinematicCharacterController)target;
@@ -71,6 +49,9 @@ public class KinematicCharacterControllerEditor : Editor
         // Draw terrain using Handles
         Handles.color = Color.white;
         Handles.DrawLine(center + Vector3.left * 2f * magnify, center + Vector3.right * 4f * magnify);
+        Handles.DrawLine(center + Vector3.right * 2f * magnify, center + (Vector3.right * 2f + Vector3.down * controller.UpStepHeight) * magnify);
+        Handles.DrawLine(center + Vector3.right * 3f * magnify, center + (Vector3.right * 3f + Vector3.up * controller.DownStepHeight) * magnify);
+
         Handles.DrawLine(center + Vector3.right * 4f * magnify, center + Vector3.right * 4f * magnify + (Vector3.right * Mathf.Cos(controller.MaxSlopeAngle * Mathf.Deg2Rad) - Vector3.up * Mathf.Sin(controller.MaxSlopeAngle * Mathf.Deg2Rad)) * 2f * magnify);
         Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.JumpMaxHeight) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.JumpMaxHeight) * magnify, 1f);
         DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.JumpMaxHeight) * magnify);

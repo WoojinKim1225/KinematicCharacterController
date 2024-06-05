@@ -63,6 +63,8 @@ public class KinematicCharacterController : MonoBehaviour
 
     public float MaxSlopeAngle => _stepAndSlopeHandleSettings._maxSlopeAngle;
     public bool IsUpStepEnabled {get => _stepAndSlopeHandleSettings._isUpStepEnabled; set => _stepAndSlopeHandleSettings._isUpStepEnabled = value; }
+    public float UpStepHeight => _stepAndSlopeHandleSettings._maxStepUpHeight;
+    public float DownStepHeight => _stepAndSlopeHandleSettings._maxStepDownHeight;
     public bool IsDownStepEnabled {get => _stepAndSlopeHandleSettings._isDownStepEnabled; set => _stepAndSlopeHandleSettings._isDownStepEnabled = value; }
 
     private Vector3 _forward, _right;
@@ -186,31 +188,43 @@ public class KinematicCharacterController : MonoBehaviour
 
     void Update()
     {
-        GetDirectionsFromView();
+        switch (_componentSettings._dimension) {
+            case KinematicCharacterSettingExtensions.EDimension.ThreeDimension:
+                GetDirectionsFromView();
+                break;
+            case KinematicCharacterSettingExtensions.EDimension.TwoDimension:
+                break;
+        }
     }
 
     void FixedUpdate()
     {
-        UpdateGravity();
+        switch (_componentSettings._dimension) {
+            case KinematicCharacterSettingExtensions.EDimension.ThreeDimension:
+                UpdateGravity();
 
-        if (_isGrounded.Value) _airJumpStateful.Value = _airJumpStateful.InitialValue;
+                if (_isGrounded.Value) _airJumpStateful.Value = _airJumpStateful.InitialValue;
 
-        _componentSettings._capsuleCollider.transform.up = _playerUp.normalized;
+                _componentSettings._capsuleCollider.transform.up = _playerUp.normalized;
 
-        CalculateObjectSpaceVariables();
+                CalculateObjectSpaceVariables();
 
-        CalculateTangentSpaceVariables();
+                CalculateTangentSpaceVariables();
 
-        CalculateWorldSpaceVariables();
+                CalculateWorldSpaceVariables();
 
-        UpdateProperties();
+                UpdateProperties();
 
-        beforeWallNormal = Vector3.zero;
+                beforeWallNormal = Vector3.zero;
 
-        HandleCollisionsAndMovement();
-        accelerationGive = Vector3.zero;
-
-        impulseGive = Vector3.zero;
+                HandleCollisionsAndMovement();
+                accelerationGive = Vector3.zero;
+                impulseGive = Vector3.zero;
+                
+                break;
+            case KinematicCharacterSettingExtensions.EDimension.TwoDimension:
+                break;
+        }
     }
 
     #region Private Methods
