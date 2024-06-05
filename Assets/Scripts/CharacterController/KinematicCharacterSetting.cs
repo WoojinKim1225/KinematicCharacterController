@@ -15,14 +15,14 @@ namespace KinematicCharacterSettings
     public class ComponentSettings
     {
         
-        public KinematicCharacterSettingExtensions.EDimension _dimension = KinematicCharacterSettingExtensions.EDimension.ThreeDimension;
+        // public KinematicCharacterSettingExtensions.EDimension _dimension = KinematicCharacterSettingExtensions.EDimension.ThreeDimension;
         //[Tooltip("Kinematic Rigidbody of a character controller. Will auto allocate.")]
         public Rigidbody _rigidbody;
-        public Rigidbody2D _rigidbody2D;
+        // public Rigidbody2D _rigidbody2D;
 
         //[Tooltip("The capsule collider belonging to the character controller's child. Will auto allocate.")]
         public CapsuleCollider _capsuleCollider;
-        public CapsuleCollider2D _capsuleCollider2D;
+        // public CapsuleCollider2D _capsuleCollider2D;
     }
 
     [System.Serializable]
@@ -40,6 +40,10 @@ namespace KinematicCharacterSettings
         [Tooltip("Controls maximum jump height.")]
         public float _jumpMaxHeight = 2f;
 
+
+        public float _jumpBufferTime = 0.1f;
+        public float _coyoteTime = 0.1f;
+        
         [Tooltip("Increases movement speed while sprinting.")]
         public float _sprintSpeedMultiplier = 2f;
 

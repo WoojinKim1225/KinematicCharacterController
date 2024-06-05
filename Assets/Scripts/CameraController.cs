@@ -56,28 +56,23 @@ public class CameraController : MonoBehaviour
 
     void LateUpdate()
     {
-        if (kcc.IsThreeDimension) {
-            _cameraRotationOS += _cameraVelocityIS * Time.deltaTime * _cameraSensitivity;
-            _cameraRotationOS.y = Mathf.Clamp(_cameraRotationOS.y, -89.9f, 89.9f);
-            _cameraRotationOS.x %= 360f;
-            _cameraRotationWS = Quaternion.FromToRotation(Vector3.up, _cameraUp.normalized) * Quaternion.Euler(-_cameraRotationOS.y, _cameraRotationOS.x, 0);
+        _cameraRotationOS += _cameraVelocityIS * Time.deltaTime * _cameraSensitivity;
+        _cameraRotationOS.y = Mathf.Clamp(_cameraRotationOS.y, -89.9f, 89.9f);
+        _cameraRotationOS.x %= 360f;
+        _cameraRotationWS = Quaternion.FromToRotation(Vector3.up, _cameraUp.normalized) * Quaternion.Euler(-_cameraRotationOS.y, _cameraRotationOS.x, 0);
 
-            if (cameraMode == ECameraMode.ThirdPerson) {
-                OffsetUpdate();
+        if (cameraMode == ECameraMode.ThirdPerson) {
+            OffsetUpdate();
 
-                transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * new Vector3(_cameraOffset.x, _cameraOffset.y, offset);
+            transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * new Vector3(_cameraOffset.x, _cameraOffset.y, offset);
 
-            } else if (cameraMode == ECameraMode.FirstPerson) {
+        } else if (cameraMode == ECameraMode.FirstPerson) {
 
-                transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * _cameraOffset;
+            transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * _cameraOffset;
 
-            }
-            transform.rotation = _cameraRotationWS;
-            kcc.SetViewDirection(transform.forward);
-        } else {
-            transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraOffset;
-            transform.rotation = Quaternion.identity;
         }
+        transform.rotation = _cameraRotationWS;
+        kcc.SetViewDirection(transform.forward);
     }
 
     void OnDrawGizmos()
