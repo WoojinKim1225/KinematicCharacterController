@@ -35,9 +35,7 @@ public class CameraController : MonoBehaviour
     private Vector3 s;
     [SerializeField] private Mesh cubeMesh;
 
-    private enum ECameraCollisionMode{
-        None, RayCast, SphereCast, BoxCast
-    };
+    private enum ECameraCollisionMode{None, RayCast, SphereCast, BoxCast};
     [SerializeField] private ECameraCollisionMode cameraCollisionMode;
 
     void OnEnable()
@@ -51,8 +49,52 @@ public class CameraController : MonoBehaviour
         ReferenceManagerExtensions.DisableReference(_cameraRotateReference, OnCameraRotate);
     }
 
-    void OnCameraRotate(InputAction.CallbackContext context) {
-        _cameraVelocityIS = context.ReadValue<Vector2>();
+    void OnCameraRotate(InputAction.CallbackContext context) => _cameraVelocityIS = context.ReadValue<Vector2>();
+
+
+
+
+    void LateUpdate()
+    {
+        if (kcc.IsThreeDimension) {
+            _cameraRotationOS += _cameraVelocityIS * Time.deltaTime * _cameraSensitivity;
+            _cameraRotationOS.y = Mathf.Clamp(_cameraRotationOS.y, -89.9f, 89.9f);
+            _cameraRotationOS.x %= 360f;
+            _cameraRotationWS = Quaternion.FromToRotation(Vector3.up, _cameraUp.normalized) * Quaternion.Euler(-_cameraRotationOS.y, _cameraRotationOS.x, 0);
+
+            if (cameraMode == ECameraMode.ThirdPerson) {
+                OffsetUpdate();
+
+                transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * new Vector3(_cameraOffset.x, _cameraOffset.y, offset);
+
+            } else if (cameraMode == ECameraMode.FirstPerson) {
+
+                transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * _cameraOffset;
+
+            }
+            transform.rotation = _cameraRotationWS;
+            kcc.SetViewDirection(transform.forward);
+        } else {
+            transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraOffset;
+            transform.rotation = Quaternion.identity;
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (camera == null || !showGizmos) return;
+        switch (cameraCollisionMode) {
+            case ECameraCollisionMode.RayCast:
+
+                break;
+            case ECameraCollisionMode.SphereCast:
+                Gizmos.DrawWireSphere(camera.transform.position, r);
+                break;
+            case ECameraCollisionMode.BoxCast:
+                Gizmos.DrawWireMesh(cubeMesh, camera.transform.position, camera.transform.rotation, s * 2f);
+                
+                break;
+        }
     }
 
     void OffsetUpdate()
@@ -94,43 +136,5 @@ public class CameraController : MonoBehaviour
         }
 
         offset = dist;
-    }
-
-    void LateUpdate()
-    {
-        _cameraRotationOS += _cameraVelocityIS * Time.deltaTime * _cameraSensitivity;
-        _cameraRotationOS.y = Mathf.Clamp(_cameraRotationOS.y, -89.9f, 89.9f);
-        _cameraRotationOS.x %= 360f;
-        _cameraRotationWS = Quaternion.FromToRotation(Vector3.up, _cameraUp.normalized) * Quaternion.Euler(-_cameraRotationOS.y, _cameraRotationOS.x, 0);
-
-        if (cameraMode == ECameraMode.ThirdPerson) {
-            OffsetUpdate();
-
-            transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * new Vector3(_cameraOffset.x, _cameraOffset.y, offset);
-
-        } else if (cameraMode == ECameraMode.FirstPerson) {
-
-            transform.position = kcc.transform.TransformPoint(_targetOffset) + _cameraRotationWS * _cameraOffset;
-
-        }
-        transform.rotation = _cameraRotationWS;
-        kcc.SetViewDirection(transform.forward);
-    }
-
-    void OnDrawGizmos()
-    {
-        if (camera == null || !showGizmos) return;
-        switch (cameraCollisionMode) {
-            case ECameraCollisionMode.RayCast:
-
-                break;
-            case ECameraCollisionMode.SphereCast:
-                Gizmos.DrawWireSphere(camera.transform.position, r);
-                break;
-            case ECameraCollisionMode.BoxCast:
-                Gizmos.DrawWireMesh(cubeMesh, camera.transform.position, camera.transform.rotation, s * 2f);
-                
-                break;
-        }
     }
 }

@@ -20,6 +20,8 @@ public class KinematicCharacterController : MonoBehaviour
     #region Variables
 
     [SerializeField] private ComponentSettings _componentSettings = new ComponentSettings();
+
+    public bool IsThreeDimension => _componentSettings._dimension == KinematicCharacterSettingExtensions.EDimension.ThreeDimension;
     private Vector3 _rigidbodyPosition => _componentSettings._dimension == KinematicCharacterSettingExtensions.EDimension.ThreeDimension ? _componentSettings._rigidbody.transform.position : _componentSettings._rigidbody2D.transform.position;
     public float mass => _componentSettings._dimension == KinematicCharacterSettingExtensions.EDimension.ThreeDimension ? _componentSettings._rigidbody.mass : _componentSettings._rigidbody2D.mass;
 
@@ -141,18 +143,22 @@ public class KinematicCharacterController : MonoBehaviour
     public Vector3 impulseGive;
 
     #endregion
-
     void Awake()
+    {
+        OnAwake();
+    }
+    void OnAwake()
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        
+        Debug.Log("asdfasd");
 
         switch (_componentSettings._dimension) {
             case KinematicCharacterSettingExtensions.EDimension.TwoDimension:
                 _componentSettings._rigidbody2D = gameObject.AddComponent<Rigidbody2D>();
                 _componentSettings._rigidbody2D.mass = 1f;
                 _componentSettings._rigidbody2D.isKinematic = true;
+                _componentSettings._rigidbody2D.useFullKinematicContacts = true;
                 _componentSettings._rigidbody2D.interpolation = RigidbodyInterpolation2D.Interpolate;
                 _componentSettings._rigidbody2D.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
@@ -201,6 +207,13 @@ public class KinematicCharacterController : MonoBehaviour
     {
         switch (_componentSettings._dimension) {
             case KinematicCharacterSettingExtensions.EDimension.ThreeDimension:
+                if (_componentSettings._capsuleCollider2D != null) {
+                    Destroy(_componentSettings._capsuleCollider2D);
+                    _componentSettings._capsuleCollider2D = null;
+                    Destroy(_componentSettings._rigidbody2D);
+                    _componentSettings._rigidbody2D = null;
+                    OnAwake();
+                }
                 UpdateGravity();
 
                 if (_isGrounded.Value) _airJumpStateful.Value = _airJumpStateful.InitialValue;
@@ -220,9 +233,18 @@ public class KinematicCharacterController : MonoBehaviour
                 HandleCollisionsAndMovement();
                 accelerationGive = Vector3.zero;
                 impulseGive = Vector3.zero;
-                
+
                 break;
             case KinematicCharacterSettingExtensions.EDimension.TwoDimension:
+                if (_componentSettings._capsuleCollider != null) {
+                    Destroy(_componentSettings._capsuleCollider);
+                    _componentSettings._capsuleCollider = null;
+                    Destroy(_componentSettings._rigidbody);
+                    _componentSettings._rigidbody = null;
+                    OnAwake();
+                }
+
+                CalculateObjectSpaceVariables2D();
                 break;
         }
     }
@@ -316,7 +338,46 @@ public class KinematicCharacterController : MonoBehaviour
                 _moveVelocity.OS = _moveVelocityTargetOS;
                 break;
         }
+    }
+
+    private void CalculateObjectSpaceVariables2D() {
+        _jumpVelocity.OS = _isGrounded.Value && _jumpVelocity.IS.Value > 0 ? _movementSettings._jumpSpeed * (-gravityDirection) : Vector3.zero;
+        _jumpVelocity.OS += _gravityStateful.Value * Time.fixedDeltaTime * 0.5f;
+
+        _playerHeight.OS = _playerHeight.IS > 0 ? CrouchHeight : IdleHeight;
+
+        float moveSpeedMultiplier = _playerHeight.IS > 0f ? _movementSettings._crouchSpeedMultiplier : (_sprintInput.IS > 0 ? _movementSettings._sprintSpeedMultiplier : 1f);
+        Vector3 _moveVelocityTargetOS = _moveVelocity.IS.x * Vector3.right * _movementSettings._moveSpeed * moveSpeedMultiplier;
         
+        switch (_movementSettings._speedControlMode)
+        {
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
+                _moveVelocity.OS = _moveVelocityTargetOS;
+                break;
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
+                if ((_moveVelocity.OS - _moveVelocityTargetOS).magnitude < Time.fixedDeltaTime * _movementSettings._moveAcceleration)
+                {
+                    _moveVelocity.OS = _moveVelocityTargetOS;
+                }
+                else
+                {
+                    _moveVelocity.OS += (_moveVelocityTargetOS - _moveVelocity.OS).normalized * Time.fixedDeltaTime * _movementSettings._moveAcceleration;
+                }
+                break;
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
+                if ((_moveVelocity.OS - _moveVelocityTargetOS).magnitude < Mathf.Epsilon)
+                {
+                    _moveVelocity.OS = _moveVelocityTargetOS;
+                }
+                else
+                {
+                    _moveVelocity.OS += (_moveVelocityTargetOS - _moveVelocity.OS) * Time.fixedDeltaTime * _movementSettings._moveDamp;
+                }
+                break;
+            default:
+                _moveVelocity.OS = _moveVelocityTargetOS;
+                break;
+        }
     }
 
     private void CalculateTangentSpaceVariables()
