@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 9f86f92bacb99474a9c8385908af1d7d
+timeCreated: 1568825285
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 154271
+  packageName: Basic Motions FREE
+  packageVersion: 1.2
+  assetPath: Assets/Kevin Iglesias/Basic Motions/AnimatorControllers/BasicMotions@Sprint.controller
+  uploadId: 655116
