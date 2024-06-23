@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using UnityEditor.EditorTools;
 using UnityEngine;
 
 
@@ -7,7 +5,13 @@ namespace KinematicCharacterSettings
 {
     [System.Serializable]
     public struct GravitySet {
+        /// <summary>
+        /// the threshold of a player's vertical speed that changes player's gravity.
+        /// </summary>
         public float verticalSpeedThreshold;
+        /// <summary>
+        /// the gravity that the player's get after the threshold
+        /// </summary>
         public Vector3 gravity;
     }
     
@@ -22,7 +26,7 @@ namespace KinematicCharacterSettings
     [System.Serializable]
     public class MovementSettings
     {
-        [Tooltip("Sets character's forward and right directions.")]
+        // Sets character's forward and right directions
         public Vector3 _viewDirection;
 
         [Tooltip("Determines player's movement speed.")]
