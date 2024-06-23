@@ -111,6 +111,7 @@ GameObject:
   m_Component:
   - component: {fileID: 21986974509844446}
   - component: {fileID: 727877717094416353}
+  - component: {fileID: 6934341454189843660}
   m_Layer: 3
   m_Name: Kinematic Character Cotroller
   m_TagString: Untagged
@@ -147,49 +148,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35013d68abd0e69439f47fdc77ee1929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _componentSettings:
+  m_componentSettings:
     _rigidbody: {fileID: 0}
     _capsuleCollider: {fileID: 7702127684683910228}
-  _movementSettings:
-    _viewDirection: {x: -0.5423164, y: 0.659053, z: -0.5210971}
+  m_movementSettings:
+    _viewDirection: {x: 0, y: 0, z: 0}
     _moveSpeed: 4
     _jumpSpeed: 10
-    _jumpMaxHeight: 2.5
-    _jumpBufferTime: 0.2
-    _coyoteTime: 3.57
+    _jumpMaxHeight: 2
+    _jumpBufferTime: 0.1
+    _coyoteTime: 0.1
     _sprintSpeedMultiplier: 2
     _crouchSpeedMultiplier: 0.5
-    _maxAirJumpCount: 0
-    _speedControlMode: 1
-    _moveAcceleration: 40
+    _maxAirJumpCount: 5
+    _speedControlMode: 0
+    _moveAcceleration: 25
     _moveDamp: 10
-  _physicsSettings:
+  m_physicsSettings:
     _skinWidth: 0.01
     _maxBounces: 5
     _gravityMode: 0
     _gravity: {x: 0, y: -20, z: 0}
-    _gravityList:
-    - verticalSpeedThreshold: 0
-      gravity: {x: 0, y: -20, z: 0}
-    - verticalSpeedThreshold: 1
-      gravity: {x: 0, y: -10, z: 0}
-    - verticalSpeedThreshold: -1
-      gravity: {x: 0, y: -40, z: 0}
+    _gravityList: []
     _whatIsGround:
       serializedVersion: 2
       m_Bits: 1
-  _characterSizeSettings:
+  m_characterSizeSettings:
     _idleHeight: 2
     _crouchHeight: 1.2
-    _capsuleRadius: 0.3
-  _stepAndSlopeHandleSettings:
-    _maxSlopeAngle: 50
+    _capsuleRadius: 0.4
+  m_stepAndSlopeHandleSettings:
+    _maxSlopeAngle: 55
     _minCeilingAngle: 175
     _isUpStepEnabled: 1
     _maxStepUpHeight: 1
     _isDownStepEnabled: 1
     _maxStepDownHeight: 1
-  _externalMovementSettings:
+  m_externalMovementSettings:
     _groundMove: {x: 0, y: 0, z: 0}
     _acceleration: {x: 0, y: 0, z: 0}
     _velocity: {x: 0, y: 0, z: 0}
@@ -197,11 +192,38 @@ MonoBehaviour:
     _position: {x: 0, y: 0, z: 0}
     _isPositionSet: 0
     _contactDrag: 8
-    _airDrag: 0.05
+    _airDrag: 0.5
   _groundNormal: {x: -0, y: 1, z: -0}
   _playerUp: {x: 0, y: 1, z: 0}
   accelerationGive: {x: 0, y: 0, z: 0}
   impulseGive: {x: 0, y: 0, z: 0}
+--- !u!54 &6934341454189843660
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6002593502509736703}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &4038773461240698807
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -252,19 +274,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -2639638324218457063, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -2639638324218457063, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -2639638324218457063, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -2639638324218457063, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.7
+      value: -0.6
       objectReference: {fileID: 0}
     - target: {fileID: -2639638324218457063, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalPosition.z
@@ -288,15 +310,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9044806412961212599, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 9044806412961212599, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 9044806412961212599, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 9044806412961212599, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -304,7 +326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9044806412961212599, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.7
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 9044806412961212599, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalPosition.z

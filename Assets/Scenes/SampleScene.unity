@@ -1290,6 +1290,16 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1039041351}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1055271399 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+  m_PrefabInstance: {fileID: 5683782399313365359}
+  m_PrefabAsset: {fileID: 0}
+--- !u!136 &1161001285 stripped
+CapsuleCollider:
+  m_CorrespondingSourceObject: {fileID: 7702127684683910228, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+  m_PrefabInstance: {fileID: 5683782399313365359}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1172885407
 GameObject:
   m_ObjectHideFlags: 0
@@ -2955,26 +2965,96 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_componentSettings._capsuleCollider
+      value: 
+      objectReference: {fileID: 1161001285}
+    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_characterSizeSettings._capsuleRadius
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010536688955211520, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010536688955211520, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010536688955211520, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010536688955211520, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_Name
       value: Kinematic Character Cotroller
       objectReference: {fileID: 0}
+    - target: {fileID: 7156930081547699118, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7156930081547699118, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7156930081547699118, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7156930081547699118, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5683782399313365365}
   m_SourcePrefab: {fileID: 100100000, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
 --- !u!114 &5683782399313365363 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
   m_PrefabInstance: {fileID: 5683782399313365359}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1055271399}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 35013d68abd0e69439f47fdc77ee1929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!54 &5683782399313365365
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1055271399}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

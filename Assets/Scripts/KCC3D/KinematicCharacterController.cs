@@ -123,7 +123,7 @@ public class KinematicCharacterController : MonoBehaviour
     readonly QueryTriggerInteraction queryTrigger = QueryTriggerInteraction.Ignore;
     [SerializeField] private Vector3 accelerationGive;
     public Vector3 impulseGive;
-
+    private bool b = false;
 
     void Awake()
     {
@@ -150,10 +150,6 @@ public class KinematicCharacterController : MonoBehaviour
 
     void Start()
     {
-        if (Physics.Raycast(transform.position - Vector3.Normalize(m_physicsSettings._gravity), Vector3.Normalize(m_physicsSettings._gravity), out RaycastHit startHit, 1.01f, WhatIsGround, queryTrigger))
-        {
-            transform.position = startHit.point - Vector3.Normalize(m_physicsSettings._gravity) * _skinWidth * 2f;
-        }
     }
 
     void Update()
@@ -163,6 +159,17 @@ public class KinematicCharacterController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!b) {
+                    Debug.DrawRay(transform.position - Vector3.Normalize(m_physicsSettings._gravity), Vector3.Normalize(m_physicsSettings._gravity) * 2f, Color.yellow, 10f);
+        if (Physics.Raycast(transform.position - Vector3.Normalize(m_physicsSettings._gravity), Vector3.Normalize(m_physicsSettings._gravity), out RaycastHit startHit, 2f, WhatIsGround))
+        {
+            _nextPositionWS = m_componentSettings._rigidbody.transform.position = startHit.point - Vector3.Normalize(m_physicsSettings._gravity) * _skinWidth * 3f;
+        }
+        b = true;
+        return;
+
+        }
+
         UpdateGravity();
 
         if (_isGrounded.Value) _airJumpStateful.Value = _airJumpStateful.InitialValue;
