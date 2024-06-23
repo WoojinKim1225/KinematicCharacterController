@@ -27,12 +27,13 @@ public class KinematicCharacterControllerEditor : Editor
 
         base.OnInspectorGUI();
     }
+
     int DrawShapes()
     {
         KinematicCharacterController controller = (KinematicCharacterController)target;
         float magnify = 50f;
 
-        int h = (int)(Mathf.Max(controller.JumpMaxHeight, controller.IdleHeight, 2f) * magnify);
+        int h = (int)(Mathf.Max(controller.movementSettings._jumpMaxHeight, controller.IdleHeight, 2f) * magnify);
 
         // Calculate the position and size of the capsule
         Vector3 center = new Vector3(200f, h + 50f, 0f);
@@ -53,10 +54,10 @@ public class KinematicCharacterControllerEditor : Editor
         Handles.DrawLine(center + Vector3.right * 3f * magnify, center + (Vector3.right * 3f + Vector3.up * controller.DownStepHeight) * magnify);
 
         Handles.DrawLine(center + Vector3.right * 4f * magnify, center + Vector3.right * 4f * magnify + (Vector3.right * Mathf.Cos(controller.MaxSlopeAngle * Mathf.Deg2Rad) - Vector3.up * Mathf.Sin(controller.MaxSlopeAngle * Mathf.Deg2Rad)) * 2f * magnify);
-        Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.JumpMaxHeight) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.JumpMaxHeight) * magnify, 1f);
-        DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.JumpMaxHeight) * magnify);
+        Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.movementSettings._jumpMaxHeight) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.movementSettings._jumpMaxHeight) * magnify, 1f);
+        DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.movementSettings._jumpMaxHeight) * magnify);
 
-        DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.MoveSpeed * Time.fixedDeltaTime * 10f, false, true);
+        DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.movementSettings._moveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.movementSettings._moveSpeed * Time.fixedDeltaTime * 10f, false, true);
 
         return h;
     }

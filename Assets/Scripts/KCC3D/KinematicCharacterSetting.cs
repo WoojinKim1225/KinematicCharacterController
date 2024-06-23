@@ -56,8 +56,8 @@ namespace KinematicCharacterSettings
         [Tooltip("Damp in move speed when exponential mode.")]
         public float _moveDamp = 10f;
         
-        [Tooltip("Controls character movement mode.")]
-        public KinematicCharacterSettingExtensions.EMovementMode _movementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
+        // [Tooltip("Controls character movement mode.")]
+        // public KinematicCharacterSettingExtensions.EMovementMode _movementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
     }
 
     [System.Serializable]
@@ -147,7 +147,7 @@ namespace KinematicCharacterSettings
     {
         public enum EDimension {TwoDimension, ThreeDimension}
         public enum ESpeedControlMode { Constant, Linear, Exponential }
-        public enum EMovementMode { Ground, Swim }
+        // public enum EMovementMode { Ground, Swim }
         public enum EGravityMode {Single, Multiple}
     }
 }

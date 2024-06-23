@@ -16,7 +16,7 @@ public class WaterPhysics : MonoBehaviour
     {
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
-            kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
+            // kcc.movementSettings.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Swim;
             kcc.IsDownStepEnabled = false;
 
             //kcc.ExternalContactDrag = externalContactDrag;
@@ -38,7 +38,7 @@ public class WaterPhysics : MonoBehaviour
     {
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
-            kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
+            // kcc.MovementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
             kcc.IsDownStepEnabled = true;
             kcc.AddForce(Vector3.zero, this);
             kcc.ExternalDragReset();

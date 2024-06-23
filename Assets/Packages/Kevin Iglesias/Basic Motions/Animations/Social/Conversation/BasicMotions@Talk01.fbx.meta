@@ -871,8 +871,7 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: cea7b4908e889df4ea1487e9f97c3c67,
-    type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: cea7b4908e889df4ea1487e9f97c3c67, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1
@@ -882,10 +881,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 154271
-  packageName: Basic Motions FREE
-  packageVersion: 1.2
-  assetPath: Assets/Kevin Iglesias/Basic Motions/Animations/Social/Conversation/BasicMotions@Talk01.fbx
-  uploadId: 655116

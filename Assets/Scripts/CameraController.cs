@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
-using Unity.Mathematics;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
@@ -72,7 +69,7 @@ public class CameraController : MonoBehaviour
 
         }
         transform.rotation = _cameraRotationWS;
-        kcc.SetViewDirection(transform.forward);
+        kcc.ViewDirection = transform.forward;
     }
 
     void OnDrawGizmos()
