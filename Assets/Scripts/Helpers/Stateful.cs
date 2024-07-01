@@ -192,6 +192,49 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     }
 
     [System.Serializable]
+    public class QuaternionStateful
+    {
+        [SerializeField] private Quaternion _value;
+        [SerializeField] private bool _isChanged;
+        [SerializeField] private Quaternion _beforeValue;
+        [SerializeField] private Quaternion _initialValue;
+
+        public Quaternion Value { get => _value; set => _value = value; }
+
+        public bool IsChanged => _isChanged;
+
+        public Quaternion InitialValue { get => _initialValue; set => _initialValue = value; }
+
+        public QuaternionStateful(Quaternion v)
+        {
+            _value = v;
+            _beforeValue = v;
+            _initialValue = v;
+            _isChanged = false;
+        }
+
+        public void OnUpdate(Quaternion v)
+        {
+            _beforeValue = _value;
+            _value = v;
+            _isChanged = _beforeValue != _value;
+        }
+
+        public void OnUpdate()
+        {
+            _isChanged = _beforeValue != _value;
+            _beforeValue = _value;
+        }
+
+        public void Reset()
+        {
+            _beforeValue = _value;
+            _value = _initialValue;
+            _isChanged = _beforeValue != _value;
+        }
+    }
+
+    [System.Serializable]
     public class ObjectStateful
     {
         [SerializeField] private Object _value;

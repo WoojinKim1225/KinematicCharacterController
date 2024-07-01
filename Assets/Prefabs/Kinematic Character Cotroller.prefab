@@ -160,8 +160,8 @@ MonoBehaviour:
     _coyoteTime: 0.1
     _sprintSpeedMultiplier: 2
     _crouchSpeedMultiplier: 0.5
-    _maxAirJumpCount: 5
-    _speedControlMode: 0
+    _maxAirJumpCount: 0
+    _speedControlMode: 1
     _moveAcceleration: 25
     _moveDamp: 10
   m_physicsSettings:
@@ -178,7 +178,7 @@ MonoBehaviour:
     _crouchHeight: 1.2
     _capsuleRadius: 0.4
   m_stepAndSlopeHandleSettings:
-    _maxSlopeAngle: 55
+    _maxSlopeAngle: 50
     _minCeilingAngle: 175
     _isUpStepEnabled: 1
     _maxStepUpHeight: 1
@@ -192,7 +192,7 @@ MonoBehaviour:
     _position: {x: 0, y: 0, z: 0}
     _isPositionSet: 0
     _contactDrag: 8
-    _airDrag: 0.5
+    _airDrag: 1
   _groundNormal: {x: -0, y: 1, z: -0}
   _playerUp: {x: 0, y: 1, z: 0}
   accelerationGive: {x: 0, y: 0, z: 0}
