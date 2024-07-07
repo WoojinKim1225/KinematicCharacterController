@@ -1,4 +1,4 @@
-# Unity 3D KinematicCharacterController
+# Unity 3D KinematicCharacterController(WIP)
 
 Beta Version!
 이 프로젝트는 Unity3D에서 사용할 수 있는 Kinematic Character Controller입니다.
