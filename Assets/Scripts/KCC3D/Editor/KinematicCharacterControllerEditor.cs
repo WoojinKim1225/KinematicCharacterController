@@ -10,11 +10,6 @@ public class KinematicCharacterControllerEditor : Editor
 
     bool showComponents;
 
-    void OnEnable()
-    {   
-        
-    }
-
     public override void OnInspectorGUI()
     {
         KinematicCharacterController controller = (KinematicCharacterController)target;
@@ -33,13 +28,13 @@ public class KinematicCharacterControllerEditor : Editor
         KinematicCharacterController controller = (KinematicCharacterController)target;
         float magnify = 50f;
 
-        int h = (int)(Mathf.Max(controller.movementSettings._jumpMaxHeight, controller.IdleHeight, 2f) * magnify);
+        int h = (int)(Mathf.Max(controller.movementSettings.jumpMaxHeight.Value, controller.CharacterSizeSettings.idleHeight, 2f) * magnify);
 
         // Calculate the position and size of the capsule
         Vector3 center = new Vector3(200f, h + 50f, 0f);
-        float radius = controller.CapsuleRadius * magnify;
-        float height = controller.IdleHeight * magnify;
-        float crouchHeight = controller.CrouchHeight * magnify;
+        float radius = controller.CharacterSizeSettings.capsuleRadius.Value * magnify;
+        float height = controller.CharacterSizeSettings.idleHeight * magnify;
+        float crouchHeight = controller.CharacterSizeSettings.crouchHeight * magnify;
 
         // Draw the capsule using Handles
         Handles.color = Color.green;
@@ -54,10 +49,10 @@ public class KinematicCharacterControllerEditor : Editor
         Handles.DrawLine(center + Vector3.right * 3f * magnify, center + (Vector3.right * 3f + Vector3.up * controller.DownStepHeight) * magnify);
 
         Handles.DrawLine(center + Vector3.right * 4f * magnify, center + Vector3.right * 4f * magnify + (Vector3.right * Mathf.Cos(controller.MaxSlopeAngle * Mathf.Deg2Rad) - Vector3.up * Mathf.Sin(controller.MaxSlopeAngle * Mathf.Deg2Rad)) * 2f * magnify);
-        Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.movementSettings._jumpMaxHeight) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.movementSettings._jumpMaxHeight) * magnify, 1f);
-        DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.movementSettings._jumpMaxHeight) * magnify);
+        Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.movementSettings.jumpMaxHeight.Value) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.movementSettings.jumpMaxHeight.Value) * magnify, 1f);
+        DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.movementSettings.jumpMaxHeight.Value) * magnify);
 
-        DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.movementSettings._moveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.movementSettings._moveSpeed * Time.fixedDeltaTime * 10f, false, true);
+        DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.movementSettings.moveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.movementSettings.moveSpeed * Time.fixedDeltaTime * 10f, false, true);
 
         return h;
     }

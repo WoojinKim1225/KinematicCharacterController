@@ -1,4 +1,6 @@
 using UnityEngine;
+using StatefulVariables;
+using System.Xml;
 
 
 namespace KinematicCharacterSettings
@@ -27,20 +29,22 @@ namespace KinematicCharacterSettings
     public class MovementSettings
     {
         // Sets character's forward and right directions
-        public Vector3 _viewDirection;
+        public Vector3 viewDirection;
 
         [Tooltip("Determines player's movement speed.")]
-        public float _moveSpeed = 4f;
+        public float moveSpeed = 4f;
 
         [Tooltip("Controls initial jump speed.")]
-        public float _jumpSpeed = 10f;
+        public FloatStateful jumpSpeed = new FloatStateful(10);
 
         [Tooltip("Controls maximum jump height.")]
-        public float _jumpMaxHeight = 2f;
+        public FloatStateful jumpMaxHeight = new FloatStateful(2.5f);
 
+        public FloatStateful airJump = new FloatStateful(0);
 
-        public float _jumpBufferTime = 0.1f;
-        public float _coyoteTime = 0.1f;
+        public FloatStateful jumpBufferTime = new FloatStateful(0.2f);
+
+        public FloatStateful coyoteTime = new FloatStateful(0.2f);
         
         [Tooltip("Increases movement speed while sprinting.")]
         public float _sprintSpeedMultiplier = 2f;
@@ -59,21 +63,40 @@ namespace KinematicCharacterSettings
         
         [Tooltip("Damp in move speed when exponential mode.")]
         public float _moveDamp = 10f;
-        
-        // [Tooltip("Controls character movement mode.")]
-        // public KinematicCharacterSettingExtensions.EMovementMode _movementMode = KinematicCharacterSettingExtensions.EMovementMode.Ground;
+
+        public void InitProperties(){
+            jumpSpeed.Reset();
+            jumpMaxHeight.Reset();
+            airJump.Reset();
+            jumpBufferTime.Value = 0;
+            coyoteTime.Value = 0;
+        }
+            
+        public void UpdateProperties(Vector3 gravity, bool isGrounded, float dt) {
+            jumpSpeed.OnUpdate();
+            airJump.OnUpdate();
+            jumpMaxHeight.OnUpdate();
+
+            if (jumpSpeed.IsChanged) {
+                jumpMaxHeight.Reset(jumpSpeed.Value * jumpSpeed.Value * 0.5f / Mathf.Abs(gravity.y));
+            }
+            else if (jumpMaxHeight.IsChanged) {
+                jumpSpeed.Reset(Mathf.Sqrt(2f * Mathf.Abs(gravity.y) * jumpMaxHeight.Value));
+            }
+            if (isGrounded) airJump.Reset();
+            if (jumpBufferTime.Value > 0f) jumpBufferTime.Value -= dt;
+            if (coyoteTime.Value > 0f) coyoteTime.Value -= dt;
+        }
     }
 
     [System.Serializable]
     public class PhysicsSettings
     {
         [Tooltip("Additional space around the collision shape to prevent collision issues and clipping.")]
-        public float _skinWidth = 0.01f;
+        public float skinWidth = 0.01f;
 
         [Tooltip("Number of cycles used to process collider collisions.")]
         public int _maxBounces = 5;
-
-        
 
         public KinematicCharacterSettingExtensions.EGravityMode _gravityMode = KinematicCharacterSettingExtensions.EGravityMode.Single;
 
@@ -91,15 +114,26 @@ namespace KinematicCharacterSettings
     {
         [Delayed]
         [Tooltip("The idle height of the capsule collider.")]
-        public float _idleHeight = 2f;
+        public float idleHeight = 2f;
 
         [Delayed]
         [Tooltip("The height of the capsule collider when crouched.")]
-        public float _crouchHeight = 1.2f;
+        public float crouchHeight = 1.2f;
 
-        [Delayed]
         [Tooltip("The radius of the capsule collider.")]
-        public float _capsuleRadius = 0.5f;
+        public FloatStateful capsuleRadius = new FloatStateful(0.5f);
+
+        public FloatStateful height;
+
+        public void InitProperties(){
+            capsuleRadius.Reset();
+            height.Reset(idleHeight);
+        }
+
+        public void UpdateProperties(float h) {
+            capsuleRadius.OnUpdate();
+            height.OnUpdate(h);
+        }
     }
 
     [System.Serializable]

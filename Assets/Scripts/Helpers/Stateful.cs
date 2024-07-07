@@ -6,9 +6,9 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     public class Bool
     {
         [SerializeField] private bool _value;
-        [SerializeField] private bool _isChanged;
-        [SerializeField] private bool _beforeValue;
-        [SerializeField] private bool _initialValue;
+        private bool _isChanged;
+        private bool _beforeValue;
+        private bool _initialValue;
 
         public bool Value { get => _value; set => _value = value; }
 
@@ -50,9 +50,9 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     public class Float
     {
         [SerializeField] private float _value;
-        [SerializeField] private bool _isChanged;
-        [SerializeField] private float _beforeValue;
-        [SerializeField] private float _initialValue;
+        private bool _isChanged;
+        private float _beforeValue;
+        private float _initialValue;
 
         public float Value { get => _value; set => _value = value; }
 
@@ -91,12 +91,63 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     }
 
     [System.Serializable]
+    public struct FloatStateful
+    {
+        [SerializeField] private float _value;
+        private bool _isChanged;
+        private float _beforeValue;
+        [SerializeField] private float _initialValue;
+
+        public float Value { get => _value; set => _value = value; }
+
+        public bool IsChanged => _isChanged;
+        public float BeforeValue => _beforeValue;
+
+        public float InitialValue { get => _initialValue; set => _initialValue = value; }
+
+        public FloatStateful(float v)
+        {
+            _value = v;
+            _beforeValue = v;
+            _initialValue = v;
+            _isChanged = false;
+        }
+
+        public void OnUpdate(float v)
+        {
+            _beforeValue = _value;
+            _value = v;
+            _isChanged = _beforeValue != _value;
+        }
+
+        public void OnUpdate()
+        {
+            _isChanged = _beforeValue != _value;
+            _beforeValue = _value;
+        }
+
+        public void Reset()
+        {
+            _beforeValue = _initialValue;
+            _value = _initialValue;
+            _isChanged = false;
+        }
+
+        public void Reset(float v)
+        {
+            _beforeValue = v;
+            _value = v;
+            _isChanged = false;
+        }
+    }
+
+    [System.Serializable]
     public class Vector2Stateful
     {
         [SerializeField] private Vector2 _value;
-        [SerializeField] private bool _isChanged;
-        [SerializeField] private Vector2 _beforeValue;
-        [SerializeField] private Vector2 _initialValue;
+        private bool _isChanged;
+        private Vector2 _beforeValue;
+        private Vector2 _initialValue;
 
         public Vector2 Value { get => _value; set => _value = value; }
 
@@ -152,9 +203,9 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     public class Vector3Stateful
     {
         [SerializeField] private Vector3 _value;
-        [SerializeField] private bool _isChanged;
-        [SerializeField] private Vector3 _beforeValue;
-        [SerializeField] private Vector3 _initialValue;
+        private bool _isChanged;
+        private Vector3 _beforeValue;
+        private Vector3 _initialValue;
 
         public Vector3 Value { get => _value; set => _value = value; }
 
@@ -238,9 +289,9 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     public class ObjectStateful
     {
         [SerializeField] private Object _value;
-        [SerializeField] private bool _isChanged;
-        [SerializeField] private Object _beforeValue;
-        [SerializeField] private Object _initialValue;
+        private bool _isChanged;
+        private Object _beforeValue;
+        private Object _initialValue;
 
         public Object Value { get => _value; set => _value = value; }
         public System.Type Type => _value.GetType();

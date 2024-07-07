@@ -28,7 +28,7 @@ public class WaterPhysics : MonoBehaviour
     {
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
-            v = Vector3.Lerp(Vector3.zero, Vector3.up * f, (waterHeightWS - kcc.transform.position.y) / kcc.HeightValue);
+            v = Vector3.Lerp(Vector3.zero, Vector3.up * f, (waterHeightWS - kcc.transform.position.y) / kcc.CharacterSizeSettings.height.Value);
             
             kcc.AddForce(v - kcc.Velocity.y * Vector3.up * 0.1f - Vector3.ProjectOnPlane(kcc.Velocity, Vector3.up) * 1f, this);
         }
