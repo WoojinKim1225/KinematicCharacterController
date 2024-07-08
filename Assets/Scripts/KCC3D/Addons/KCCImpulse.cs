@@ -30,9 +30,6 @@ public class KCCImpulse : MonoBehaviour
         if (b && !b1) {
             kcc.AddForce(kcc.ViewDirection * f, this, ForceMode.VelocityChange);
         }
-        if (!b && b1) {
-
-        }
         b1 = b;
     }
 }

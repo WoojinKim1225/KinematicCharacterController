@@ -1,14 +1,26 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
+using System.Collections;
 
 [CustomEditor(typeof(KinematicCharacterController))]
 [CanEditMultipleObjects]
 public class KinematicCharacterControllerEditor : Editor
 {
-    bool debug;
-
-    bool showComponents;
+    private WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+    private void OnSceneGUI() {
+        KinematicCharacterController controller = (KinematicCharacterController)target;
+        Handles.color = new Color(0, 1, 0, 0.2f);
+        Handles.DrawSolidArc(controller.transform.position, controller.Up, Vector3.forward, Vector3.SignedAngle(Vector3.forward, controller.Forward, controller.Up), 0.5f);
+        Handles.color = new Color(0, 1, 0, 1f);
+        Handles.DrawWireDisc(controller.transform.position, controller.Up, 0.5f);
+        Vector3 c = controller.HorizontalVelocity.normalized;
+        Handles.color = new Color(Mathf.Abs(c.x), Mathf.Abs(c.y), Mathf.Abs(c.z));
+        Handles.DrawLine(controller.transform.position, controller.transform.position + controller.HorizontalVelocity);
+        c = controller.VerticalVelocity.normalized;
+        Handles.color = new Color(Mathf.Abs(c.x), Mathf.Abs(c.y), Mathf.Abs(c.z));
+        Handles.DrawLine(controller.transform.position, controller.transform.position + controller.VerticalVelocity);
+    }
 
     public override void OnInspectorGUI()
     {
@@ -73,11 +85,11 @@ public class KinematicCharacterControllerEditor : Editor
         Handles.DrawDottedLine(center, center - Vector3.up * h, 1f);
     }
 
-
     void DrawArrow(Vector3 from, Vector3 to, bool isLeftEnable = true, bool isRightEnable = true)
     {
         Handles.DrawLine(from, to);
         if (isLeftEnable) Handles.DrawLine(to, to + Quaternion.Euler(0, 0, 45f) * (from - to).normalized * 10f);
         if (isRightEnable) Handles.DrawLine(to, to + Quaternion.Euler(0, 0, -45f) * (from - to).normalized * 10f);
     }
+    
 }

@@ -2,6 +2,7 @@ using UnityEngine;
 using StatefulVariables;
 using KinematicCharacterSettings;
 using Unity.VisualScripting;
+using System.Collections.Generic;
 
 
 public class KinematicCharacterController : MonoBehaviour
@@ -92,6 +93,7 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 beforeWallNormal = Vector3.zero;
 
     [SerializeField] private Vector3 _groundNormal = Vector3.up;
+    [SerializeField] private List<Vector3> normals = new List<Vector3>();
     [SerializeField] private Vector3 _playerUp = Vector3.up;
 
     public LayerMask WhatIsGround => m_physicsSettings._whatIsGround;
@@ -167,9 +169,12 @@ public class KinematicCharacterController : MonoBehaviour
         beforeWallNormal = Vector3.zero;
 
         HandleCollisionsAndMovement(Time.fixedDeltaTime);
+        foreach (Vector3 normal in normals) {
+            if (Vector3.Dot(m_externalMovementSettings._velocity, normal) < 0) {
+                m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, normal) + normal * m_physicsSettings.skinWidth;
+            }
+        }
     }
-
-
 
     private void InitStateful()
     {
@@ -323,7 +328,6 @@ public class KinematicCharacterController : MonoBehaviour
         m_playerHeight.WS = m_playerHeight.OS * transform.localScale.y;
     }
 
-
     private void HandleCollisionsAndMovement(float dt)
     {
         if (m_externalMovementSettings._isPositionSet)
@@ -338,6 +342,7 @@ public class KinematicCharacterController : MonoBehaviour
         }
 
         _groundedDepth = 0;
+        normals.Clear();
 
         isKinematicHit.Value = false;
 
@@ -357,7 +362,6 @@ public class KinematicCharacterController : MonoBehaviour
         impulseGive = Vector3.zero;
     }
 
-
     private Vector3 CollideAndSlide(Vector3 vel, Vector3 pos, int depth, bool state, Vector3 velInit = default)
     {
         if (depth >= m_physicsSettings._maxBounces) return Vector3.zero;
@@ -369,7 +373,8 @@ public class KinematicCharacterController : MonoBehaviour
             {
                 case false:
                     _isCollidedHorizontal = false;
-                    _isGrounded.OnUpdate(false);
+                    //_isGrounded.OnUpdate(false);
+                    _isGrounded.Value = false;
                     break;
                 case true:
                     _isCollidedVertical = false;
@@ -384,6 +389,7 @@ public class KinematicCharacterController : MonoBehaviour
         if (Physics.CapsuleCast(pos + capsuleFocusUp, pos + capsuleFocusDown, m_characterSizeSettings.capsuleRadius.Value + m_physicsSettings.skinWidth * 0.5f, vel.normalized, out RaycastHit hit, dist, m_physicsSettings._whatIsGround, queryTrigger))
         {
             if (hit.collider.isTrigger) return CollideAndSlide(vel, pos, depth + 1, state);
+            normals.Add(hit.normal);
             Vector3 flatHit = Vector3.ProjectOnPlane(hit.normal, gravityDirection).normalized;
             float scale = 1 - Vector3.Dot(flatHit, -Vector3.ProjectOnPlane(velInit, gravityDirection).normalized);
 
@@ -397,9 +403,9 @@ public class KinematicCharacterController : MonoBehaviour
                     break;
             }
 
-            if (Vector3.Dot(m_externalMovementSettings._velocity, hit.normal) < 0) {
-                m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, hit.normal);
-            }
+            //if (Vector3.Dot(m_externalMovementSettings._velocity, hit.normal) < 0) {
+            //    m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, hit.normal);
+            //}
 
             Vector3 snapToSurface = vel.normalized * (hit.distance - m_physicsSettings.skinWidth * 0.5f);
             Vector3 leftover = vel - snapToSurface;
@@ -544,8 +550,6 @@ public class KinematicCharacterController : MonoBehaviour
 
         isKinematicHit.OnUpdate();
     }
-
-
 
     public void AddForce(Vector3 force, Object from, ForceMode forceMode = ForceMode.Force)
     {
