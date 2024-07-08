@@ -184,8 +184,6 @@ public class KinematicCharacterController : MonoBehaviour
         _isGrounded = new Bool(false);
         _isCollidedStateful = new Bool(false);
 
-        //m_characterSizeSettings.height = new Float(IdleHeight);
-        //m_characterSizeSettings.capsuleRadius = new Float(CapsuleRadius);
 
         _gravityStateful = new Vector3Stateful(m_physicsSettings._gravity);
         m_jumpVelocity.IS = new Float(0);
@@ -373,8 +371,8 @@ public class KinematicCharacterController : MonoBehaviour
             {
                 case false:
                     _isCollidedHorizontal = false;
-                    //_isGrounded.OnUpdate(false);
-                    _isGrounded.Value = false;
+                    _isGrounded.OnUpdate(false);
+                    //_isGrounded.Value = false;
                     break;
                 case true:
                     _isCollidedVertical = false;
