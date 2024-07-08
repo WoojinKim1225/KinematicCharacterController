@@ -83,10 +83,10 @@ public class InputManager : MonoBehaviour
 
         switch (toggle) {
             case 0:
-                controller0.MoveVelocityIS = _moveValue;
-                controller0.JumpVelocityIS = _jumpValue;
-                controller0.PlayerHeightIS = _crouchValue;
-                controller0.SprintInputIS = _sprintValue;
+                controller0.SetMoveVelocityIS(_moveValue);
+                controller0.SetJumpVelocityIS(_jumpValue);
+                controller0.SetPlayerHeightIS(_crouchValue);
+                controller0.SetSprintInputIS(_sprintValue);
 
                 controller1.gameObject.SetActive(false);
                 controller1.WingAngleIS = Vector2.zero;
@@ -97,10 +97,10 @@ public class InputManager : MonoBehaviour
                 controller1.WingAngleIS = _moveValue;
                 controller1.WingFoldIS = 1 - _crouchValue;
 
-                controller0.MoveVelocityIS = controller0.IsGrounded ? _moveValue : Vector2.zero;
-                controller0.JumpVelocityIS = _jumpValue;
-                controller0.PlayerHeightIS = 0;
-                controller0.SprintInputIS = 0;
+                controller0.SetMoveVelocityIS(controller0.IsGrounded ? _moveValue : Vector2.zero);
+                controller0.SetJumpVelocityIS(_jumpValue);
+                controller0.SetPlayerHeightIS(0);
+                controller0.SetSprintInputIS(0);
                 break;
             default:
                 break;
