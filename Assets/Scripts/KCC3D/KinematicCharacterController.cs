@@ -111,6 +111,7 @@ public class KinematicCharacterController : MonoBehaviour
     void Awake()
     {
         dt = Time.fixedDeltaTime;
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -452,46 +453,17 @@ public class KinematicCharacterController : MonoBehaviour
                 switch (state)
                 {
                     case false:
-                        if (_isGrounded.Value)
-                        {
-                            leftover = Vector3.Project(leftover, Vector3.Cross(hit.normal, _groundNormal).normalized);
-                        }
-                        else
-                        {
-                            leftover = projectAndScale(leftover, hit.normal) * scale;
-                        }
-
-                        if (m_stepAndSlopeHandleSettings._isUpStepEnabled && !_isDownStep && _isGrounded.BeforeValue)
-                        {
-                            Vector3 pivot = characterLowestPosition + Vector3.ProjectOnPlane(hit.point - characterLowestPosition, gravityDirection) - gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight;
-
-                            bool b0 = Physics.Raycast(pivot + flatHit * m_characterSizeSettings.capsuleRadius.Value, -flatHit, m_characterSizeSettings.capsuleRadius.Value + 0.01f, WhatIsGround, queryTrigger);
-                            Debug.DrawRay(pivot + flatHit * m_characterSizeSettings.capsuleRadius.Value, -flatHit * (m_characterSizeSettings.capsuleRadius.Value + 0.01f), (b0 ? 1 : 0.4f) * Color.cyan, 0.2f);
-
-                            bool b1 = Physics.Raycast(pivot - flatHit * 0.01f, gravityDirection, out RaycastHit h1, m_stepAndSlopeHandleSettings._maxStepUpHeight, m_physicsSettings._whatIsGround, queryTrigger);
-                            Debug.DrawRay(pivot - flatHit * 0.01f, gravityDirection * (m_stepAndSlopeHandleSettings._maxStepUpHeight), (b1 ? 1 : 0.4f) * Color.magenta, 0.2f);
-
-                            bool b2 = Physics.SphereCast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) + (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value) * (-gravityDirection), 
-                                m_characterSizeSettings.capsuleRadius.Value + m_physicsSettings.skinWidth, 
-                                gravityDirection, 
-                                out RaycastHit h2, 
-                                m_stepAndSlopeHandleSettings._maxStepUpHeight, 
-                                WhatIsGround, 
-                                queryTrigger);
-                            
-                            Debug.DrawRay(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) + (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value) * (-gravityDirection), 
-                                gravityDirection * (m_stepAndSlopeHandleSettings._maxStepUpHeight  + m_characterSizeSettings.capsuleRadius.Value), 
-                                (b2 ? 1 : 0.4f) * Color.yellow, 
-                                10f);
-
-                            float upStepDistance = Vector3.Dot(h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value - characterLowestPosition, -gravityDirection) + m_physicsSettings.skinWidth;
-
-                            if (!b0 && b1 && b2 && upStepDistance <= m_stepAndSlopeHandleSettings._maxStepUpHeight && upStepDistance > 0f && Vector3.Angle(h1.normal, -gravityDirection) <= MaxSlopeAngle)
+                        if (StepUp(characterLowestPosition, hit, flatHit, vel, out Vector3 additionalUpStep)) {
+                            snapToSurface += additionalUpStep;
+                        } else {
+                            if (_isGrounded.Value)
                             {
-                                _isUpStep = true;
-                                snapToSurface += upStepDistance * (-gravityDirection);
+                                leftover = Vector3.Project(leftover, Vector3.Cross(hit.normal, _groundNormal).normalized);
                             }
-
+                            else
+                            {
+                                leftover = projectAndScale(leftover, hit.normal) * scale;
+                            }
                         }
                         break;
                     case true:
@@ -562,6 +534,54 @@ public class KinematicCharacterController : MonoBehaviour
         m_movementSettings.UpdateProperties(_gravityStateful.Value, _isGrounded.Value, dt);
 
         isKinematicHit.OnUpdate();
+    }
+
+    private bool StepUp(Vector3 characterLowestPosition, RaycastHit hit, Vector3 flatHit, Vector3 vel, out Vector3 additionalUpStep)
+    {
+        if (m_stepAndSlopeHandleSettings._isUpStepEnabled && !_isDownStep && _isGrounded.BeforeValue)
+        {
+            Vector3 pivot = characterLowestPosition + Vector3.ProjectOnPlane(hit.point - characterLowestPosition, gravityDirection) - gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight;
+
+            // if the wall is too high, break;
+            if (Physics.Raycast(pivot + flatHit * m_characterSizeSettings.capsuleRadius.Value,
+                -flatHit,
+                m_characterSizeSettings.capsuleRadius.Value + 0.01f,
+                WhatIsGround,
+                queryTrigger)
+            ) {
+                additionalUpStep = Vector3.zero;
+                return false;
+            }
+
+            if (!Physics.Raycast(pivot - flatHit * 0.01f, gravityDirection, out RaycastHit h1, m_stepAndSlopeHandleSettings._maxStepUpHeight, m_physicsSettings._whatIsGround, queryTrigger)) {
+                additionalUpStep = Vector3.zero;
+                return false;
+            }
+
+            bool b2 = Physics.SphereCast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) + (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value) * (-gravityDirection),
+                m_characterSizeSettings.capsuleRadius.Value + m_physicsSettings.skinWidth,
+                gravityDirection,
+                out RaycastHit h2,
+                m_stepAndSlopeHandleSettings._maxStepUpHeight,
+                WhatIsGround,
+                queryTrigger);
+
+            Debug.DrawRay(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) + (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value) * (-gravityDirection),
+                gravityDirection * (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value),
+                (b2 ? 1 : 0.4f) * Color.yellow,
+                10f);
+
+            float upStepDistance = Vector3.Dot(h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value - characterLowestPosition, -gravityDirection) + m_physicsSettings.skinWidth;
+
+            if (b2 && upStepDistance <= m_stepAndSlopeHandleSettings._maxStepUpHeight && upStepDistance > 0f && Vector3.Angle(h1.normal, -gravityDirection) <= MaxSlopeAngle)
+            {
+                _isUpStep = true;
+                additionalUpStep = upStepDistance * (-gravityDirection);
+                return true;
+            }
+        }
+        additionalUpStep = Vector3.zero;
+        return false;
     }
 
     public void SetMoveVelocityIS(Vector3 value) => m_moveVelocity.IS = value;

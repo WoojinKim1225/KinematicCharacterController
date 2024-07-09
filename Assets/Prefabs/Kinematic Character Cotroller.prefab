@@ -186,7 +186,7 @@ MonoBehaviour:
       gravity: {x: 0, y: -40, z: 0}
     _whatIsGround:
       serializedVersion: 2
-      m_Bits: 4294967295
+      m_Bits: 1
   m_characterSizeSettings:
     idleHeight: 2
     crouchHeight: 1.2
@@ -197,8 +197,8 @@ MonoBehaviour:
       _value: 0
       _initialValue: 2
   m_stepAndSlopeHandleSettings:
-    _maxSlopeAngle: 55
-    _minCeilingAngle: 130
+    _maxSlopeAngle: 50
+    _minCeilingAngle: 170
     _isUpStepEnabled: 1
     _maxStepUpHeight: 1
     _isDownStepEnabled: 1
@@ -213,9 +213,8 @@ MonoBehaviour:
     _contactDrag: 8
     _airDrag: 1
   _groundNormal: {x: 0, y: 1, z: 0}
+  normals: []
   _playerUp: {x: 0, y: 1, z: 0}
-  accelerationGive: {x: 0, y: 0, z: 0}
-  impulseGive: {x: 0, y: 0, z: 0}
   parent: {fileID: 0}
   parentPos: {x: 0, y: 0, z: 0}
   parentPosBefore: {x: 0, y: 0, z: 0}
@@ -268,6 +267,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8391222552659086748, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -6309288710069335960, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -3540272279435206582, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: -2639638324218457063, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8
@@ -295,6 +306,26 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_Name
       value: capsule
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 990761963331379121, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6905609870639353253, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7036213049465896255, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8719771546195959716, guid: 99424eae8338d5147821069e3502298f, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8879528566716807029, guid: 99424eae8338d5147821069e3502298f, type: 3}
       propertyPath: m_LocalRotation.w

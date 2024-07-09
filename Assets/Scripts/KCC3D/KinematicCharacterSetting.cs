@@ -49,6 +49,7 @@ namespace KinematicCharacterSettings
         [Tooltip("Increases movement speed while sprinting.")]
         public float _sprintSpeedMultiplier = 2f;
 
+
         [Tooltip("Decreases movement speed while crouching.")]
         public float _crouchSpeedMultiplier = 0.5f;
 
