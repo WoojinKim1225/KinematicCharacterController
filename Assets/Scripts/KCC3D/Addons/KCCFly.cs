@@ -14,7 +14,7 @@ public class KCCFly : MonoBehaviour
     public MeshRenderer meshRenderer;
 
     private void OnEnable() {
-        kcc.AddForce(kcc.Velocity * 40f, this, ForceMode.Impulse);
+        kcc.AddForce(kcc.Velocity * 40f, ForceMode.Impulse);
     }
 
     void Update()
@@ -32,7 +32,7 @@ public class KCCFly : MonoBehaviour
             Vector3 up = Vector3.Cross(forward, right);
             float area = Vector3.Cross(Vector3.ProjectOnPlane(forward, velocity.normalized), Vector3.ProjectOnPlane(right, velocity.normalized)).magnitude;
             Vector3 force = 0.5f * 1.225f * Mathf.Min(velocity.magnitude * velocity.magnitude, 10000) * area * up * Mathf.Sign(Vector3.Dot(up, velocity)) * 0.2f;
-            kcc.AddForce(force, this);
+            kcc.AddForce(force);
 
             transform.position = kcc.transform.position + Vector3.up;
             transform.rotation = Quaternion.LookRotation(forward, up);

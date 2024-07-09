@@ -28,7 +28,7 @@ public class KCCImpulse : MonoBehaviour
         b = inputActions.action.ReadValue<float>() != 0;
         
         if (b && !b1) {
-            kcc.AddForce(kcc.ViewDirection * f, this, ForceMode.VelocityChange);
+            kcc.AddForce(kcc.ViewDirection * f, ForceMode.VelocityChange);
         }
         b1 = b;
     }

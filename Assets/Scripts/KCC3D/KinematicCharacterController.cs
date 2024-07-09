@@ -453,17 +453,16 @@ public class KinematicCharacterController : MonoBehaviour
                 switch (state)
                 {
                     case false:
-                        if (StepUp(characterLowestPosition, hit, flatHit, vel, out Vector3 additionalUpStep)) {
+                        if (StepUp(characterLowestPosition, hit, flatHit, vel, out Vector3 additionalUpStep))
+                        {
                             snapToSurface += additionalUpStep;
-                        } else {
+                        }
+                        else
+                        {
                             if (_isGrounded.Value)
-                            {
                                 leftover = Vector3.Project(leftover, Vector3.Cross(hit.normal, _groundNormal).normalized);
-                            }
                             else
-                            {
                                 leftover = projectAndScale(leftover, hit.normal) * scale;
-                            }
                         }
                         break;
                     case true:
@@ -485,23 +484,25 @@ public class KinematicCharacterController : MonoBehaviour
         {
             if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.jumpBufferTime.Value <= 0)
             {
-                Ray r = new Ray(pos + m_characterSizeSettings.height.Value * 0.5f * gravityDirection + m_moveVelocity.WS * dt, gravityDirection);
+                Ray r = new Ray(characterLowestPosition + vel, gravityDirection);
                 bool b = Physics.Raycast(r, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger);
-                bool b1 = Physics.SphereCast(pos + m_moveVelocity.WS * dt - m_characterSizeSettings.capsuleRadius.Value * gravityDirection, m_componentSettings._capsuleCollider.bounds.extents.x, -_playerUp.normalized, out RaycastHit h2, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger);
-
-                if (!_isUpStep && b && !b1 && h.distance > m_characterSizeSettings.height.Value * 0.5f + m_physicsSettings.skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
-                {
+                bool b1 = Physics.SphereCast(
+                    r.origin - (m_characterSizeSettings.capsuleRadius.Value + m_playerHeight.WS * 0.5f) * gravityDirection, 
+                    m_componentSettings._capsuleCollider.bounds.extents.x, 
+                    gravityDirection, 
+                    out RaycastHit h2, 
+                    m_stepAndSlopeHandleSettings._maxStepDownHeight + m_playerHeight.WS * 0.5f,
+                     m_physicsSettings._whatIsGround, queryTrigger);
+                if (!_isUpStep && b && b1 && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
+                    Debug.DrawRay(h2.point, h2.normal, Color.white, 1f);
                     _isDownStep = true;
-                    return CollideAndSlide(-_playerUp * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
+                    return CollideAndSlide(gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
                 }
-                else
-                {
-                    m_movementSettings.coyoteTime.Reset();//coyoteTimeStateful.Value = m_movementSettings._coyoteTime;
-                }
+                //else
+                //    m_movementSettings.coyoteTime.Reset();
             }
-
         }
-
+        m_movementSettings.coyoteTime.Reset();
         return vel;
     }
 
@@ -542,22 +543,26 @@ public class KinematicCharacterController : MonoBehaviour
         {
             Vector3 pivot = characterLowestPosition + Vector3.ProjectOnPlane(hit.point - characterLowestPosition, gravityDirection) - gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight;
 
-            // if the wall is too high, break;
+            // check wall height is less than max step up height
             if (Physics.Raycast(pivot + flatHit * m_characterSizeSettings.capsuleRadius.Value,
                 -flatHit,
                 m_characterSizeSettings.capsuleRadius.Value + 0.01f,
                 WhatIsGround,
                 queryTrigger)
-            ) {
+            )
+            {
                 additionalUpStep = Vector3.zero;
                 return false;
             }
 
-            if (!Physics.Raycast(pivot - flatHit * 0.01f, gravityDirection, out RaycastHit h1, m_stepAndSlopeHandleSettings._maxStepUpHeight, m_physicsSettings._whatIsGround, queryTrigger)) {
+            // check ground on step
+            if (!Physics.Raycast(pivot - flatHit * 0.01f, gravityDirection, out RaycastHit h1, m_stepAndSlopeHandleSettings._maxStepUpHeight, m_physicsSettings._whatIsGround, queryTrigger))
+            {
                 additionalUpStep = Vector3.zero;
                 return false;
             }
 
+            // check next position
             bool b2 = Physics.SphereCast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) + (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value) * (-gravityDirection),
                 m_characterSizeSettings.capsuleRadius.Value + m_physicsSettings.skinWidth,
                 gravityDirection,
@@ -565,11 +570,6 @@ public class KinematicCharacterController : MonoBehaviour
                 m_stepAndSlopeHandleSettings._maxStepUpHeight,
                 WhatIsGround,
                 queryTrigger);
-
-            Debug.DrawRay(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) + (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value) * (-gravityDirection),
-                gravityDirection * (m_stepAndSlopeHandleSettings._maxStepUpHeight + m_characterSizeSettings.capsuleRadius.Value),
-                (b2 ? 1 : 0.4f) * Color.yellow,
-                10f);
 
             float upStepDistance = Vector3.Dot(h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value - characterLowestPosition, -gravityDirection) + m_physicsSettings.skinWidth;
 
@@ -584,6 +584,38 @@ public class KinematicCharacterController : MonoBehaviour
         return false;
     }
 
+    private bool StepDown(Vector3 characterLowestPosition, Vector3 vel, out Vector3 additionalDownStep) {
+        if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.jumpBufferTime.Value <= 0)
+        {
+            if (!Physics.Raycast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection), gravityDirection, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger)) {
+                additionalDownStep = Vector3.zero;
+                return false;
+            }
+            bool b1 = Physics.SphereCast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) - m_characterSizeSettings.capsuleRadius.Value * gravityDirection, 
+                m_componentSettings._capsuleCollider.bounds.extents.x, 
+                gravityDirection, 
+                out RaycastHit h2, 
+                m_stepAndSlopeHandleSettings._maxStepDownHeight, 
+                m_physicsSettings._whatIsGround, 
+                queryTrigger);
+
+            float downStepDistance = Vector3.Dot(h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value - characterLowestPosition, -gravityDirection) + m_physicsSettings.skinWidth;
+
+            if (!_isUpStep && b1 && h.distance > m_characterSizeSettings.height.Value * 0.5f + m_physicsSettings.skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
+            {
+                _isDownStep = true;
+                additionalDownStep = downStepDistance * gravityDirection;
+                return true;
+                //return CollideAndSlide(gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
+
+            }
+            else
+                m_movementSettings.coyoteTime.Reset();
+        }
+        additionalDownStep = Vector3.zero;
+        return false;
+    }
+
     public void SetMoveVelocityIS(Vector3 value) => m_moveVelocity.IS = value;
 
     public void SetJumpVelocityIS(float value) => m_jumpVelocity.IS.Value = value;
@@ -593,7 +625,7 @@ public class KinematicCharacterController : MonoBehaviour
     public void SetPlayerHeightIS(float value) => m_playerHeight.IS = value;
 
 
-    public void AddForce(Vector3 force, Object from, ForceMode forceMode = ForceMode.Force)
+    public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
     {
         switch (forceMode)
         {
@@ -613,9 +645,9 @@ public class KinematicCharacterController : MonoBehaviour
 
     }
 
-    public void AddRelativeForce(Vector3 force, GameObject from, ForceMode forceMode = ForceMode.Force)
+    public void AddRelativeForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
     {
-        AddForce(transform.TransformDirection(force), from, forceMode);
+        AddForce(transform.TransformDirection(force), forceMode);
     }
 
     public Vector3 GetAccumulatedForce()
