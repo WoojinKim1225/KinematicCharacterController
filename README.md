@@ -71,5 +71,6 @@ After importing, the character controller assets will be available in your proje
   - [ ] Push/pull functionality
   - [ ] Enhanced object collision responses
 - [ ] Performance optimization
+- [ ] Add 2D controller
 - [ ] Improve documentation and create API reference
 - [ ] Create sample scenes and demo projects
