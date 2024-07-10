@@ -109,12 +109,10 @@ public class KinematicCharacterController : MonoBehaviour
 
     void Awake()
     {
-        dt = Time.fixedDeltaTime;
-
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        if (gameObject.TryGetComponent<Rigidbody>(out Rigidbody rb)) m_componentSettings._rigidbody = rb;
+        if (gameObject.TryGetComponent(out Rigidbody rb)) m_componentSettings._rigidbody = rb;
         else m_componentSettings._rigidbody = gameObject.AddComponent<Rigidbody>();
 
         m_componentSettings._rigidbody.mass = 1f;
@@ -139,6 +137,8 @@ public class KinematicCharacterController : MonoBehaviour
 
     void FixedUpdate()
     {
+        dt = Time.fixedDeltaTime;
+
         if (!isAfterStart)
         {
             if (Physics.Raycast(transform.position - Vector3.Normalize(m_physicsSettings._gravity), Vector3.Normalize(m_physicsSettings._gravity), out RaycastHit startHit, 2f, WhatIsGround))
@@ -147,7 +147,6 @@ public class KinematicCharacterController : MonoBehaviour
             }
             isAfterStart = true;
             return;
-
         }
 
         UpdateGravity(Time.fixedDeltaTime);
@@ -167,6 +166,7 @@ public class KinematicCharacterController : MonoBehaviour
         beforeWallNormal = Vector3.zero;
 
         HandleCollisionsAndMovement(Time.fixedDeltaTime);
+
         foreach (Vector3 normal in normals)
         {
             if (Vector3.Dot(m_externalMovementSettings._velocity, normal) < 0)
@@ -573,8 +573,7 @@ public class KinematicCharacterController : MonoBehaviour
                 queryTrigger);
 
             float upStepDistance = Vector3.Dot(h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value - characterLowestPosition, -gravityDirection) + m_physicsSettings.skinWidth;
-
-            if (b2 && upStepDistance <= m_stepAndSlopeHandleSettings._maxStepUpHeight && upStepDistance > 0f && Vector3.Angle(h1.normal, -gravityDirection) <= MaxSlopeAngle)
+            if (b2 && upStepDistance <= m_stepAndSlopeHandleSettings._maxStepUpHeight && upStepDistance > 0f && Vector3.Angle(h1.normal, -gravityDirection) <= MaxSlopeAngle && Vector3.Angle(-Vector3.ProjectOnPlane(hit.normal, gravityDirection), Vector3.ProjectOnPlane(vel, gravityDirection)) <= m_stepAndSlopeHandleSettings._maxStepUpWallAngle)
             {
                 _isUpStep = true;
                 additionalUpStep = upStepDistance * (-gravityDirection);

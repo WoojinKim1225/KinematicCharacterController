@@ -157,6 +157,8 @@ namespace KinematicCharacterSettings
 
         [Tooltip("The maximum height the player can step down from.")]
         public float _maxStepDownHeight = 0.4f;
+
+        public float _maxStepUpWallAngle = 45f;
     }
 
     [System.Serializable]
