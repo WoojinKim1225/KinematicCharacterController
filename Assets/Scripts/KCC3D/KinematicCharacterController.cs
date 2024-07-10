@@ -586,11 +586,8 @@ public class KinematicCharacterController : MonoBehaviour
 
             if (!_isUpStep && b && b1 && Vector3.Dot(characterLowestPosition - (h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value), _playerUp) > 0 && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
             {
-                Debug.DrawRay(h2.point, h2.normal, Color.white, 1f);
                 additionalDownStep = gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight;
                 return true;
-                //_isDownStep = true;
-                //return CollideAndSlide(gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
             }
         }
         additionalDownStep = Vector3.zero;
