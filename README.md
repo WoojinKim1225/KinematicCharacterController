@@ -36,46 +36,39 @@ My character collider currently supports these features:
 - AddRelativeForce(Force, Impulse, Acceleration, ChangeVelocity) Method
 - Move, MovePosition, MoveRotation Method
 - SetVelocity Method
+You can make your character Swim, Fly, Dash, Wall-Run with these methods.
 
 
 
 ## Installation
 
-[Explain installation process]
+To install this Kinematic Character Controller in your Unity project:
 
-## Usage
+1. Go to the [Releases](https://github.com/WoojinKim1225/KinematicCharacterController/releases) page of this repository.
+2. Download the latest `.unitypackage` file from the most recent release.
+3. Open your Unity project.
+4. In Unity, go to Assets > Import Package > Custom Package.
+5. Select the downloaded `.unitypackage` file.
+6. In the Import Unity Package window, ensure all items are selected and click 'Import'.
 
-[Provide basic usage instructions]
+After importing, the character controller assets will be available in your project.
 
-## Customization Guide
-
-[Brief guide on how to customize the controller]
 
 ## Future Development Plans
 
 - [ ] Implement Dynamic Rigidbody methods:
-  - [ ] AddForce()
   - [ ] AddTorque()
+  - [ ] Rotate()
   - [ ] Other related methods...
 - [ ] Implement additional constraints:
-  - [ ] Slope movement restrictions
-  - [ ] Maximum velocity limits
-  - [ ] Others...
-- [ ] Add advanced movement features:
-  - [ ] Wall running
-  - [ ] Double jump
-  - [ ] Air dash
+  - [ ] Distance constraint
+  - [ ] Maximum velocity constraint
+  - [ ] Spring constraint
+  - [ ] Joint constraint
+  - [ ] Other related constraints...
 - [ ] Improve physics-based interactions:
   - [ ] Push/pull functionality
   - [ ] Enhanced object collision responses
 - [ ] Performance optimization
 - [ ] Improve documentation and create API reference
 - [ ] Create sample scenes and demo projects
-
-## Contributing
-
-If you'd like to contribute to this project, please feel free to submit a Pull Request. All contributions are welcome!
-
-## License
-
-[Include license information]
