@@ -7,7 +7,7 @@ public class CapsuleShape : MonoBehaviour
 {
     private Transform Bone, Bone001;
     public KinematicCharacterController kcc;
-    public CapsuleCollider collider;
+    public new CapsuleCollider collider;
 
     private float _height, _radius;
 
