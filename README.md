@@ -73,4 +73,3 @@ After importing, the character controller assets will be available in your proje
 - [ ] Performance optimization
 - [ ] Add 2D controller
 - [ ] Improve documentation and create API reference
-- [ ] Create sample scenes and demo projects
