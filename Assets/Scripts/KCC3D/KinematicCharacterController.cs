@@ -484,23 +484,9 @@ public class KinematicCharacterController : MonoBehaviour
 
         else if (state && _isGroundedBeforeFrame && !_isCollidedHorizontal && m_jumpVelocity.IS.Value == 0)
         {
-            if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.jumpBufferTime.Value <= 0)
-            {
-                Ray r = new Ray(characterLowestPosition + vel, gravityDirection);
-                bool b = Physics.Raycast(r, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger);
-                bool b1 = Physics.SphereCast(
-                    r.origin - (m_characterSizeSettings.capsuleRadius.Value + m_playerHeight.WS * 0.5f) * gravityDirection, 
-                    m_componentSettings._capsuleCollider.bounds.extents.x, 
-                    gravityDirection, 
-                    out RaycastHit h2, 
-                    m_stepAndSlopeHandleSettings._maxStepDownHeight + m_playerHeight.WS * 0.5f,
-                    m_physicsSettings._whatIsGround, queryTrigger);
-                
-                if (!_isUpStep && b && b1 && Vector3.Dot(characterLowestPosition - (h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value), _playerUp) > 0 && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
-                    Debug.DrawRay(h2.point, h2.normal, Color.white, 1f);
-                    _isDownStep = true;
-                    return CollideAndSlide(gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
-                }
+            if (StepDown(characterLowestPosition, vel, out Vector3 additionalDownStep)) {
+                _isDownStep = true;
+                return CollideAndSlide(additionalDownStep, pos, depth + 1, true, velInit);
             }
         }
         m_movementSettings.coyoteTime.Reset();
@@ -584,33 +570,28 @@ public class KinematicCharacterController : MonoBehaviour
         return false;
     }
 
-    private bool StepDown(Vector3 characterLowestPosition, Vector3 vel, out Vector3 additionalDownStep) {
+    private bool StepDown(Vector3 characterLowestPosition, Vector3 vel, out Vector3 additionalDownStep)
+    {
         if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.jumpBufferTime.Value <= 0)
         {
-            if (!Physics.Raycast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection), gravityDirection, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger)) {
-                additionalDownStep = Vector3.zero;
-                return false;
-            }
-            bool b1 = Physics.SphereCast(characterLowestPosition + Vector3.ProjectOnPlane(vel, gravityDirection) - m_characterSizeSettings.capsuleRadius.Value * gravityDirection, 
-                m_componentSettings._capsuleCollider.bounds.extents.x, 
-                gravityDirection, 
-                out RaycastHit h2, 
-                m_stepAndSlopeHandleSettings._maxStepDownHeight, 
-                m_physicsSettings._whatIsGround, 
-                queryTrigger);
+            Ray r = new Ray(characterLowestPosition + vel, gravityDirection);
+            bool b = Physics.Raycast(r, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger);
+            bool b1 = Physics.SphereCast(
+                r.origin - (m_characterSizeSettings.capsuleRadius.Value + m_playerHeight.WS * 0.5f) * gravityDirection,
+                m_componentSettings._capsuleCollider.bounds.extents.x,
+                gravityDirection,
+                out RaycastHit h2,
+                m_stepAndSlopeHandleSettings._maxStepDownHeight + m_playerHeight.WS * 0.5f,
+                m_physicsSettings._whatIsGround, queryTrigger);
 
-            float downStepDistance = Vector3.Dot(h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value - characterLowestPosition, -gravityDirection) + m_physicsSettings.skinWidth;
-
-            if (!_isUpStep && b1 && h.distance > m_characterSizeSettings.height.Value * 0.5f + m_physicsSettings.skinWidth && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
+            if (!_isUpStep && b && b1 && Vector3.Dot(characterLowestPosition - (h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value), _playerUp) > 0 && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle)
             {
-                _isDownStep = true;
-                additionalDownStep = downStepDistance * gravityDirection;
+                Debug.DrawRay(h2.point, h2.normal, Color.white, 1f);
+                additionalDownStep = gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight;
                 return true;
+                //_isDownStep = true;
                 //return CollideAndSlide(gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
-
             }
-            else
-                m_movementSettings.coyoteTime.Reset();
         }
         additionalDownStep = Vector3.zero;
         return false;
