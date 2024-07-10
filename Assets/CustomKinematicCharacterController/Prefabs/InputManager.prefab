@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2375778304547431738
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3099201982069249264}
+  - component: {fileID: 3411906592236109523}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3099201982069249264
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2375778304547431738}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3411906592236109523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2375778304547431738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 089c1204c9a599a42b18b9e2fcb78e8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _moveReference: {fileID: -5114764600897907175, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
+  _jumpReference: {fileID: -2101542654031946695, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
+  _crouchReference: {fileID: 2545485967095024656, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
+  _sprintReference: {fileID: 6430348378485783799, guid: 86a423644ed98ac499d56495f3f00970, type: 3}
+  _controllingObjects:
+  - {fileID: 0}
+  - {fileID: 0}
+  switchProperty:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Switch Property
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 1ab52dae-d8f6-4b67-b95d-2866ffbefd7a
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 99391f76-5a19-42f4-926b-3cfed794db02
+        m_Path: <Keyboard>/tab
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Switch Property
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
