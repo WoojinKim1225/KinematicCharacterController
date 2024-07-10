@@ -36,6 +36,7 @@ My character collider currently supports these features:
 - AddRelativeForce(Force, Impulse, Acceleration, ChangeVelocity) Method
 - Move, MovePosition, MoveRotation Method
 - SetVelocity Method
+
 You can make your character Swim, Fly, Dash, Wall-Run with these methods.
 
 
