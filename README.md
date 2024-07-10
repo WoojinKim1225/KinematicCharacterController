@@ -39,7 +39,13 @@ My character collider currently supports these features:
 
 You can make your character Swim, Fly, Dash, Wall-Run with these methods.
 
+## Dependencies
 
+This project requires the following Unity packages:
+- Input System
+- Universal Render Pipeline (URP)
+
+Please ensure these are installed in your Unity project before importing this character controller.
 
 ## Installation
 
