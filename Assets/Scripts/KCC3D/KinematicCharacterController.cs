@@ -81,9 +81,8 @@ public class KinematicCharacterController : MonoBehaviour
     private Vector3 _nextPositionWS;
 
     private Bool _isGrounded;
+    private bool _isGroundedBeforeFrame;
     public bool IsGrounded => _isGrounded.Value;
-    private bool _isGroundedExit => !_isGrounded.Value && _isGrounded.BeforeValue;
-    private bool _isGroundedEnter => _isGrounded.Value && !_isGrounded.BeforeValue;
     private Bool _isCollidedStateful;
 
     private bool _isCollidedHorizontal, _isCollidedVertical;
@@ -175,6 +174,8 @@ public class KinematicCharacterController : MonoBehaviour
                 m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, normal) + normal * m_physicsSettings.skinWidth;
             }
         }
+
+        _isGroundedBeforeFrame = _isGrounded.Value;
     }
 
     private void InitStateful()
@@ -352,6 +353,7 @@ public class KinematicCharacterController : MonoBehaviour
         isKinematicHit.Value = false;
 
         _horizontalDisplacement = CollideAndSlide(m_moveVelocity.WS * dt, m_componentSettings._rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
+        Debug.Log(m_jumpVelocity.WS.y * dt);
         _verticalDisplacement = CollideAndSlide(m_jumpVelocity.WS * dt, m_componentSettings._rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
 
         if (!isKinematicHit.Value) parent = null;
@@ -387,7 +389,7 @@ public class KinematicCharacterController : MonoBehaviour
             }
         }
 
-        float dist = vel.magnitude + m_physicsSettings.skinWidth * 0.5f;
+        float dist = vel.magnitude + m_physicsSettings.skinWidth;
         Vector3 capsulePoint = (m_characterSizeSettings.height.Value * 0.5f - m_characterSizeSettings.capsuleRadius.Value) * _playerUp.normalized;
         Vector3 characterLowestPosition = pos - capsulePoint + gravityDirection * m_characterSizeSettings.capsuleRadius.Value;
 
@@ -480,7 +482,7 @@ public class KinematicCharacterController : MonoBehaviour
             return snapToSurface + CollideAndSlide(leftover, pos + snapToSurface, depth + 1, state, velInit);
         }
 
-        else if (state && _isGroundedExit && m_jumpVelocity.IS.Value == 0)
+        else if (state && _isGroundedBeforeFrame && !_isCollidedHorizontal && m_jumpVelocity.IS.Value == 0)
         {
             if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.jumpBufferTime.Value <= 0)
             {
@@ -492,14 +494,13 @@ public class KinematicCharacterController : MonoBehaviour
                     gravityDirection, 
                     out RaycastHit h2, 
                     m_stepAndSlopeHandleSettings._maxStepDownHeight + m_playerHeight.WS * 0.5f,
-                     m_physicsSettings._whatIsGround, queryTrigger);
-                if (!_isUpStep && b && b1 && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
+                    m_physicsSettings._whatIsGround, queryTrigger);
+                
+                if (!_isUpStep && b && b1 && Vector3.Dot(characterLowestPosition - (h2.point + (h2.normal + gravityDirection) * m_characterSizeSettings.capsuleRadius.Value), _playerUp) > 0 && Vector3.Angle(_playerUp, h.normal) <= MaxSlopeAngle) {
                     Debug.DrawRay(h2.point, h2.normal, Color.white, 1f);
                     _isDownStep = true;
                     return CollideAndSlide(gravityDirection * m_stepAndSlopeHandleSettings._maxStepUpHeight, pos, depth + 1, true, velInit);
                 }
-                //else
-                //    m_movementSettings.coyoteTime.Reset();
             }
         }
         m_movementSettings.coyoteTime.Reset();
