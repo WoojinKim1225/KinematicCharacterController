@@ -188,7 +188,6 @@ namespace KinematicCharacterSettings
     {
         public enum EDimension {TwoDimension, ThreeDimension}
         public enum ESpeedControlMode { Constant, Linear, Exponential }
-        // public enum EMovementMode { Ground, Swim }
         public enum EGravityMode {Single, Multiple}
     }
 }
