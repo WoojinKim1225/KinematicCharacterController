@@ -2602,14 +2602,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_movementSettings.jumpMaxHeightStateful._value
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_movementSettings.jumpMaxHeightStateful._initialValue
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
       propertyPath: m_Name
       value: Kinematic Character Cotroller
