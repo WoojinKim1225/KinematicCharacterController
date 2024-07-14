@@ -2603,39 +2603,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: _playerUp.x
+      propertyPath: m_movementSettings.jumpMaxHeightStateful._value
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: _playerUp.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_movementSettings.airJump._initialValue
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_stepAndSlopeHandleSettings._maxSlopeAngle
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_stepAndSlopeHandleSettings._isUpStepEnabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_stepAndSlopeHandleSettings._minCeilingAngle
-      value: 170
-      objectReference: {fileID: 0}
-    - target: {fileID: 727877717094416353, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_stepAndSlopeHandleSettings._isDownStepEnabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3695354593534260567, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4577383926896242780, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}
-      propertyPath: m_LocalPosition.y
+      propertyPath: m_movementSettings.jumpMaxHeightStateful._initialValue
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6002593502509736703, guid: 66a29cbf163857d4b836860168fa90a3, type: 3}

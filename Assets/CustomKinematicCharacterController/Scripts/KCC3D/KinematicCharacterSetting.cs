@@ -20,25 +20,29 @@ namespace KinematicCharacterSettings
     [System.Serializable]
     public class ComponentSettings
     {
-        public Rigidbody _rigidbody;
+        public Rigidbody rigidbody;
 
-        public CapsuleCollider _capsuleCollider;
+        public CapsuleCollider capsuleCollider;
     }
 
     [System.Serializable]
     public class MovementSettings
     {
-        // Sets character's forward and right directions
+        [Tooltip("Sets character's forward and right directions")]
         public Vector3 viewDirection;
 
         [Tooltip("Determines player's movement speed.")]
         public float moveSpeed = 4f;
 
         [Tooltip("Controls initial jump speed.")]
-        public FloatStateful jumpSpeed = new FloatStateful(10);
+        [SerializeField] private float _jumpSpeed = 10f;
+        public float JumpSpeed{get => _jumpSpeed;}
+        public FloatStateful jumpSpeedStateful;// = new FloatStateful(10);
 
         [Tooltip("Controls maximum jump height.")]
-        public FloatStateful jumpMaxHeight = new FloatStateful(2.5f);
+        [SerializeField] private float _jumpMaxHeight = 2.5f;
+        public float JumpMaxHeight{get => _jumpMaxHeight;}
+        public FloatStateful jumpMaxHeightStateful;//
 
         public FloatStateful airJump = new FloatStateful(0);
 
@@ -66,24 +70,27 @@ namespace KinematicCharacterSettings
         public float _moveDamp = 10f;
 
         public void InitProperties(){
-            jumpSpeed.Reset();
-            jumpMaxHeight.Reset();
+            jumpSpeedStateful.Reset(_jumpSpeed);
+            jumpMaxHeightStateful.Reset();
             airJump.Reset();
             jumpBufferTime.Value = 0;
             coyoteTime.Value = 0;
         }
             
         public void UpdateProperties(Vector3 gravity, bool isGrounded, float dt) {
-            jumpSpeed.OnUpdate();
-            airJump.OnUpdate();
-            jumpMaxHeight.OnUpdate();
+            jumpSpeedStateful.OnUpdate(_jumpSpeed);
+            jumpMaxHeightStateful.OnUpdate(_jumpMaxHeight);
 
-            if (jumpSpeed.IsChanged) {
-                jumpMaxHeight.Reset(jumpSpeed.Value * jumpSpeed.Value * 0.5f / Mathf.Abs(gravity.y));
+            if (jumpSpeedStateful.IsChanged) {
+                jumpMaxHeightStateful.Reset(jumpSpeedStateful.Value * jumpSpeedStateful.Value * 0.5f / Mathf.Abs(gravity.y));
+                _jumpMaxHeight = jumpMaxHeightStateful.Value;
             }
-            else if (jumpMaxHeight.IsChanged) {
-                jumpSpeed.Reset(Mathf.Sqrt(2f * Mathf.Abs(gravity.y) * jumpMaxHeight.Value));
+            else if (jumpMaxHeightStateful.IsChanged) {
+                jumpSpeedStateful.Reset(Mathf.Sqrt(2f * Mathf.Abs(gravity.y) * jumpMaxHeightStateful.Value));
+                _jumpSpeed = jumpSpeedStateful.Value;
             }
+
+            airJump.OnUpdate();
             if (isGrounded) airJump.Reset();
             if (jumpBufferTime.Value > 0f) jumpBufferTime.Value -= dt;
             if (coyoteTime.Value > 0f) coyoteTime.Value -= dt;
@@ -144,7 +151,7 @@ namespace KinematicCharacterSettings
         public float _maxSlopeAngle = 55f;
 
         [Tooltip("Minimum angle of a ceiling the player's movement won't be canceled.")]
-        public float _minCeilingAngle = 130f;
+        public float _minCeilingAngle = 175f;
 
         [Tooltip("Can the player can step up onto higher surfaces without obstruction?")]
         public bool _isUpStepEnabled = true;
@@ -171,7 +178,7 @@ namespace KinematicCharacterSettings
         public Vector3 _position;
         public bool _isPositionSet;
 
-        public float _contactDrag = 0.5f;
+        public float _contactDrag = 8f;
         public float _airDrag = 1f;
     }
 

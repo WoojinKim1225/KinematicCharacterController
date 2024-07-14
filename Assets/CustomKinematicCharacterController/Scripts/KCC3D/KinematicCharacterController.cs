@@ -16,12 +16,17 @@ public class KinematicCharacterController : MonoBehaviour
 
     public Vector3 ViewDirection { get => m_movementSettings.viewDirection; set => m_movementSettings.viewDirection = value; }
 
-    [SerializeField] private PhysicsSettings m_physicsSettings = new PhysicsSettings();
+    [SerializeField] private PhysicsSettings m_physicsSettings = new PhysicsSettings() {
+        _gravity = Vector3.down * 20f
+    };
 
     private Vector3Stateful _gravityStateful;
     private Vector3 gravityDirection => _gravityStateful.Value.normalized;
 
-    [SerializeField] private CharacterSizeSettings m_characterSizeSettings = new CharacterSizeSettings();
+    [SerializeField] private CharacterSizeSettings m_characterSizeSettings = new CharacterSizeSettings() {
+        idleHeight = 2,
+        height = new FloatStateful(2)
+    };
     public CharacterSizeSettings CharacterSizeSettings => m_characterSizeSettings;
 
     private Vector3 capsuleFocusUp => (m_characterSizeSettings.height.Value * 0.5f - m_characterSizeSettings.capsuleRadius.Value) * _playerUp.normalized;
@@ -112,20 +117,20 @@ public class KinematicCharacterController : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        if (gameObject.TryGetComponent(out Rigidbody rb)) m_componentSettings._rigidbody = rb;
-        else m_componentSettings._rigidbody = gameObject.AddComponent<Rigidbody>();
+        if (gameObject.TryGetComponent(out Rigidbody rb)) m_componentSettings.rigidbody = rb;
+        else m_componentSettings.rigidbody = gameObject.AddComponent<Rigidbody>();
 
-        m_componentSettings._rigidbody.mass = 1f;
-        m_componentSettings._rigidbody.detectCollisions = true;
-        m_componentSettings._rigidbody.isKinematic = true;
-        m_componentSettings._rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-        m_componentSettings._rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        m_componentSettings.rigidbody.mass = 1f;
+        m_componentSettings.rigidbody.detectCollisions = true;
+        m_componentSettings.rigidbody.isKinematic = true;
+        m_componentSettings.rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+        m_componentSettings.rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-        m_componentSettings._capsuleCollider.gameObject.SetActive(true);
-        m_componentSettings._capsuleCollider.transform.localPosition = Vector3.up;
-        m_componentSettings._capsuleCollider.height = m_characterSizeSettings.idleHeight - 2f * m_physicsSettings.skinWidth;
-        m_componentSettings._capsuleCollider.radius = m_characterSizeSettings.capsuleRadius.Value - m_physicsSettings.skinWidth;
-        m_componentSettings._capsuleCollider.bounds.Expand(-2 * m_physicsSettings.skinWidth);
+        m_componentSettings.capsuleCollider.gameObject.SetActive(true);
+        m_componentSettings.capsuleCollider.transform.localPosition = Vector3.up;
+        m_componentSettings.capsuleCollider.height = m_characterSizeSettings.idleHeight - 2f * m_physicsSettings.skinWidth;
+        m_componentSettings.capsuleCollider.radius = m_characterSizeSettings.capsuleRadius.Value - m_physicsSettings.skinWidth;
+        m_componentSettings.capsuleCollider.bounds.Expand(-2 * m_physicsSettings.skinWidth);
 
         InitStateful();
     }
@@ -143,7 +148,7 @@ public class KinematicCharacterController : MonoBehaviour
         {
             if (Physics.Raycast(transform.position - Vector3.Normalize(m_physicsSettings._gravity), Vector3.Normalize(m_physicsSettings._gravity), out RaycastHit startHit, 2f, WhatIsGround))
             {
-                _nextPositionWS = m_componentSettings._rigidbody.transform.position = startHit.point - Vector3.Normalize(m_physicsSettings._gravity) * m_physicsSettings.skinWidth * 3f;
+                _nextPositionWS = m_componentSettings.rigidbody.transform.position = startHit.point - Vector3.Normalize(m_physicsSettings._gravity) * m_physicsSettings.skinWidth * 3f;
             }
             isAfterStart = true;
             return;
@@ -153,7 +158,7 @@ public class KinematicCharacterController : MonoBehaviour
 
         if (_isGrounded.Value) m_movementSettings.airJump.Value = m_movementSettings.airJump.InitialValue;
 
-        m_componentSettings._capsuleCollider.transform.up = _playerUp.normalized;
+        m_componentSettings.capsuleCollider.transform.up = _playerUp.normalized;
 
         CalculateObjectSpaceVariables(Time.fixedDeltaTime);
 
@@ -225,7 +230,7 @@ public class KinematicCharacterController : MonoBehaviour
     {
         if (_isGrounded.Value && (m_jumpVelocity.IS.Value > 0 || m_movementSettings.jumpBufferTime.Value > 0))
         {
-            m_jumpVelocity.OS = m_movementSettings.jumpSpeed.Value * (-gravityDirection);
+            m_jumpVelocity.OS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection);
         }
         else m_jumpVelocity.OS = Vector3.zero;
         m_jumpVelocity.OS += _gravityStateful.Value * dt * 0.5f;
@@ -275,12 +280,14 @@ public class KinematicCharacterController : MonoBehaviour
             _groundNormal = -gravityDirection;
             if (_isJumpStarted && m_movementSettings.airJump.Value-- > 0)
             {
-                m_jumpVelocity.WS = m_movementSettings.jumpSpeed.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
+                Debug.Log("asdfasdfasd");
+                m_jumpVelocity.WS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
             }
             else if (m_movementSettings.coyoteTime.Value > 0 && _isJumpStarted)
             {
+                Debug.Log("asdfasdfasdaaaaaaaa");
                 m_movementSettings.coyoteTime.Value = 0;
-                m_jumpVelocity.WS = m_movementSettings.jumpSpeed.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
+                m_jumpVelocity.WS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
             }
             else
             {
@@ -289,7 +296,7 @@ public class KinematicCharacterController : MonoBehaviour
         }
         else if (m_movementSettings.jumpBufferTime.Value > 0)
         {
-            m_jumpVelocity.WS = m_movementSettings.jumpSpeed.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
+            m_jumpVelocity.WS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
 
         }
         else m_jumpVelocity.WS = m_jumpVelocity.OS;
@@ -305,7 +312,7 @@ public class KinematicCharacterController : MonoBehaviour
         if (m_externalMovementSettings._velocity.magnitude < dt * drag)
             m_externalMovementSettings._velocity = Vector3.zero;
 
-        m_externalMovementSettings._velocity *= 1 - drag / componentSettings._rigidbody.mass * dt;
+        m_externalMovementSettings._velocity *= 1 - drag / componentSettings.rigidbody.mass * dt;
 
         if (isKinematicHit.Value && !isKinematicHit.BeforeValue)
         {
@@ -339,7 +346,7 @@ public class KinematicCharacterController : MonoBehaviour
         if (m_externalMovementSettings._isPositionSet)
         {
             m_jumpVelocity.WS = m_jumpVelocity.OS = _gravityStateful.Value * dt * 0.5f;
-            m_componentSettings._rigidbody.MovePosition(m_externalMovementSettings._position);
+            m_componentSettings.rigidbody.MovePosition(m_externalMovementSettings._position);
             m_externalMovementSettings._isPositionSet = false;
 
             accelerationGive = Vector3.zero;
@@ -352,17 +359,17 @@ public class KinematicCharacterController : MonoBehaviour
 
         isKinematicHit.Value = false;
 
-        _horizontalDisplacement = CollideAndSlide(m_moveVelocity.WS * dt, m_componentSettings._rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
-        _verticalDisplacement = CollideAndSlide(m_jumpVelocity.WS * dt, m_componentSettings._rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
+        _horizontalDisplacement = CollideAndSlide(m_moveVelocity.WS * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
+        _verticalDisplacement = CollideAndSlide(m_jumpVelocity.WS * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
 
         if (!isKinematicHit.Value) parent = null;
 
         _isCollidedStateful.Value = _isCollidedHorizontal || _isCollidedVertical;
 
         _displacement = _horizontalDisplacement + _verticalDisplacement;
-        _nextPositionWS = _displacement + m_componentSettings._rigidbody.transform.position;
+        _nextPositionWS = _displacement + m_componentSettings.rigidbody.transform.position;
 
-        m_componentSettings._rigidbody.MovePosition(_nextPositionWS);
+        m_componentSettings.rigidbody.MovePosition(_nextPositionWS);
 
         accelerationGive = Vector3.zero;
         impulseGive = Vector3.zero;
@@ -488,7 +495,7 @@ public class KinematicCharacterController : MonoBehaviour
                 return CollideAndSlide(additionalDownStep, pos, depth + 1, true, velInit);
             }
         }
-        m_movementSettings.coyoteTime.Reset();
+        m_movementSettings.coyoteTime.Value = 0;
         return vel;
     }
 
@@ -509,13 +516,13 @@ public class KinematicCharacterController : MonoBehaviour
 
         if (m_characterSizeSettings.height.IsChanged)
         {
-            m_componentSettings._capsuleCollider.height = m_characterSizeSettings.height.Value - m_physicsSettings.skinWidth * 2f;
-            m_componentSettings._capsuleCollider.transform.localPosition = _playerUp.normalized * m_characterSizeSettings.height.Value * 0.5f;
+            m_componentSettings.capsuleCollider.height = m_characterSizeSettings.height.Value - m_physicsSettings.skinWidth * 2f;
+            m_componentSettings.capsuleCollider.transform.localPosition = _playerUp.normalized * m_characterSizeSettings.height.Value * 0.5f;
         }
 
         if (m_characterSizeSettings.capsuleRadius.IsChanged)
         {
-            m_componentSettings._capsuleCollider.radius = m_characterSizeSettings.capsuleRadius.Value - m_physicsSettings.skinWidth;
+            m_componentSettings.capsuleCollider.radius = m_characterSizeSettings.capsuleRadius.Value - m_physicsSettings.skinWidth;
         }
 
         m_movementSettings.UpdateProperties(_gravityStateful.Value, _isGrounded.Value, dt);
@@ -577,7 +584,7 @@ public class KinematicCharacterController : MonoBehaviour
             bool b = Physics.Raycast(r, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger);
             bool b1 = Physics.SphereCast(
                 r.origin - (m_characterSizeSettings.capsuleRadius.Value + m_playerHeight.WS * 0.5f) * gravityDirection,
-                m_componentSettings._capsuleCollider.bounds.extents.x,
+                m_componentSettings.capsuleCollider.bounds.extents.x,
                 gravityDirection,
                 out RaycastHit h2,
                 m_stepAndSlopeHandleSettings._maxStepDownHeight + m_playerHeight.WS * 0.5f,
@@ -607,10 +614,10 @@ public class KinematicCharacterController : MonoBehaviour
         switch (forceMode)
         {
             case ForceMode.Force:
-                accelerationGive += force / m_componentSettings._rigidbody.mass;
+                accelerationGive += force / m_componentSettings.rigidbody.mass;
                 break;
             case ForceMode.Impulse:
-                impulseGive += force / m_componentSettings._rigidbody.mass;
+                impulseGive += force / m_componentSettings.rigidbody.mass;
                 break;
             case ForceMode.Acceleration:
                 accelerationGive += force;

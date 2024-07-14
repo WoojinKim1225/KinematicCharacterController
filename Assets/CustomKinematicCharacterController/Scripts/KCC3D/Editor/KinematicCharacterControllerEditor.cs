@@ -3,11 +3,14 @@ using UnityEditor;
 using UnityEditor.EditorTools;
 using System.Collections;
 
+/*
 [CustomEditor(typeof(KinematicCharacterController))]
 [CanEditMultipleObjects]
 public class KinematicCharacterControllerEditor : Editor
 {
-    private WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+    private int selectedTab = 0;
+    private string[] tabTitles = { "Tab 1", "Tab 2", "Tab 3" };
+
     private void OnSceneGUI() {
         KinematicCharacterController controller = (KinematicCharacterController)target;
         Handles.color = new Color(0, 1, 0, 0.2f);
@@ -31,6 +34,10 @@ public class KinematicCharacterControllerEditor : Editor
         int height = DrawShapes();
 
         EditorGUILayout.Space(height + 100f);
+
+        selectedTab = GUILayout.Toolbar(selectedTab, tabTitles);
+
+        EditorGUILayout.ObjectField()
 
         base.OnInspectorGUI();
     }
@@ -93,3 +100,4 @@ public class KinematicCharacterControllerEditor : Editor
     }
     
 }
+*/
