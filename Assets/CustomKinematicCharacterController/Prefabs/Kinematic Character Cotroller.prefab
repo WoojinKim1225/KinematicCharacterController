@@ -149,30 +149,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_componentSettings:
     rigidbody: {fileID: 0}
-    capsuleCollider: {fileID: 7702127684683910228}
+    capsuleCollider: {fileID: 0}
   m_movementSettings:
     viewDirection: {x: 0, y: 0, z: 0}
     moveSpeed: 4
     _jumpSpeed: 10
-    jumpSpeedStateful:
-      _value: 0
-      _initialValue: 0
     _jumpMaxHeight: 2.5
-    jumpMaxHeightStateful:
-      _value: 0
-      _initialValue: 0
-    airJump:
-      _value: 0
-      _initialValue: 0
-    jumpBufferTime:
-      _value: 0.2
-      _initialValue: 0.2
+    _jumpBufferTime: 0.2
     coyoteTime:
       _value: 0.2
       _initialValue: 0.2
     _sprintSpeedMultiplier: 2
     _crouchSpeedMultiplier: 0.5
-    _maxAirJumpCount: 5
+    _maxAirJumpCount: 1
     _speedControlMode: 0
     _moveAcceleration: 25
     _moveDamp: 10
@@ -181,11 +170,7 @@ MonoBehaviour:
     _maxBounces: 5
     _gravityMode: 0
     _gravity: {x: 0, y: -20, z: 0}
-    _gravityList:
-    - verticalSpeedThreshold: 0
-      gravity: {x: 0, y: -20, z: 0}
-    - verticalSpeedThreshold: -0.1
-      gravity: {x: 0, y: -40, z: 0}
+    _gravityList: []
     _whatIsGround:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -202,9 +187,9 @@ MonoBehaviour:
     _maxSlopeAngle: 55
     _minCeilingAngle: 175
     _isUpStepEnabled: 1
-    _maxStepUpHeight: 1
+    _maxStepUpHeight: 0.4
     _isDownStepEnabled: 1
-    _maxStepDownHeight: 1
+    _maxStepDownHeight: 0.4
     _maxStepUpWallAngle: 45
   m_externalMovementSettings:
     _groundMove: {x: 0, y: 0, z: 0}

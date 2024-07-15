@@ -36,64 +36,83 @@ namespace KinematicCharacterSettings
 
         [Tooltip("Controls initial jump speed.")]
         [SerializeField] private float _jumpSpeed = 10f;
-        public float JumpSpeed{get => _jumpSpeed;}
-        public FloatStateful jumpSpeedStateful;// = new FloatStateful(10);
+        public float JumpSpeed => _jumpSpeed;
+
+        private FloatStateful _jumpSpeedStateful;
+        public float GetJumpSpeedStateful() => _jumpSpeedStateful.Value;
 
         [Tooltip("Controls maximum jump height.")]
         [SerializeField] private float _jumpMaxHeight = 2.5f;
-        public float JumpMaxHeight{get => _jumpMaxHeight;}
-        public FloatStateful jumpMaxHeightStateful;//
+        public float JumpMaxHeightInputValue => _jumpMaxHeight;
 
-        public FloatStateful airJump = new FloatStateful(0);
+        private FloatStateful _jumpMaxHeightStateful;
+        public float GetJumpMaxHeightStateful() => _jumpMaxHeightStateful.Value;
 
-        public FloatStateful jumpBufferTime = new FloatStateful(0.2f);
+        [SerializeField] private float _jumpBufferTime = 0.2f;
+        public float JumpBufferTimeInputValue => _jumpBufferTime;
+        private Timer _jumpBufferTimer;
+        public float GetJumpBufferTimer() => _jumpBufferTimer.Value;
+        public void ResetJumpBufferTimer(float value) => _jumpBufferTimer.Reset(value);
 
-        public FloatStateful coyoteTime = new FloatStateful(0.2f);
+        [SerializeField] private float _coyoteTime = 0.2f;
+        public float CoyoteTimeInputValue => _coyoteTime;
+        private Timer _coyoteTimer;
+        public float GetCoyoteTimer() => _coyoteTimer.Value;
+        public void SetCoyoteTimerValue2End() => _coyoteTimer.Value = _coyoteTimer.EndValue;
+        public void ResetCoyoteTimerValue(float value) => _coyoteTimer.Reset(value);
         
         [Tooltip("Increases movement speed while sprinting.")]
         public float _sprintSpeedMultiplier = 2f;
-
 
         [Tooltip("Decreases movement speed while crouching.")]
         public float _crouchSpeedMultiplier = 0.5f;
 
         [Tooltip("Sets maximum number of midair jumps.")]
-        public int _maxAirJumpCount = 5;
+        [SerializeField] private int _maxAirJumpCount = 1;
+        public int MaxAirJumpCount => _maxAirJumpCount;
+        private Timer airJumpTimer;
+        public int GetAirJumpTimer() => (int)airJumpTimer.Value;
+        public void UpdateAirJumpTimer(float value) => airJumpTimer.OnSubtract(value);
 
         [Tooltip("Controls character speed mode.")]
-        public KinematicCharacterSettingExtensions.ESpeedControlMode _speedControlMode = KinematicCharacterSettingExtensions.ESpeedControlMode.Constant;
+        [SerializeField] private KinematicCharacterSettingExtensions.ESpeedControlMode _speedControlMode = KinematicCharacterSettingExtensions.ESpeedControlMode.Constant;
+        public KinematicCharacterSettingExtensions.ESpeedControlMode SpeedControlMode => _speedControlMode;
         
         [Tooltip("Acceleration in move speed when linear mode.")]
-        public float _moveAcceleration = 25f;
+        [SerializeField] private float _moveAcceleration = 25f;
+        public float MoveAcceleration => _moveAcceleration;
         
         [Tooltip("Damp in move speed when exponential mode.")]
         public float _moveDamp = 10f;
 
+        public AnimationCurve _moveAnimationCurve;
+
         public void InitProperties(){
-            jumpSpeedStateful.Reset(_jumpSpeed);
-            jumpMaxHeightStateful.Reset();
-            airJump.Reset();
-            jumpBufferTime.Value = 0;
-            coyoteTime.Value = 0;
+            _jumpSpeedStateful.Reset(_jumpSpeed);
+            _jumpMaxHeightStateful.Reset();
+            airJumpTimer.Init(_maxAirJumpCount, 0);
+            _jumpBufferTimer.Init(_jumpBufferTime, 0);
+            _coyoteTimer.Init(_coyoteTime, 0);
         }
             
         public void UpdateProperties(Vector3 gravity, bool isGrounded, float dt) {
-            jumpSpeedStateful.OnUpdate(_jumpSpeed);
-            jumpMaxHeightStateful.OnUpdate(_jumpMaxHeight);
+            _jumpSpeedStateful.OnUpdate(_jumpSpeed);
+            _jumpMaxHeightStateful.OnUpdate(_jumpMaxHeight);
+            airJumpTimer.OnUpdate(_maxAirJumpCount);
 
-            if (jumpSpeedStateful.IsChanged) {
-                jumpMaxHeightStateful.Reset(jumpSpeedStateful.Value * jumpSpeedStateful.Value * 0.5f / Mathf.Abs(gravity.y));
-                _jumpMaxHeight = jumpMaxHeightStateful.Value;
+            if (_jumpSpeedStateful.IsChanged) {
+                _jumpMaxHeightStateful.Reset(_jumpSpeedStateful.Value * _jumpSpeedStateful.Value * 0.5f / Mathf.Abs(gravity.y));
+                _jumpMaxHeight = _jumpMaxHeightStateful.Value;
             }
-            else if (jumpMaxHeightStateful.IsChanged) {
-                jumpSpeedStateful.Reset(Mathf.Sqrt(2f * Mathf.Abs(gravity.y) * jumpMaxHeightStateful.Value));
-                _jumpSpeed = jumpSpeedStateful.Value;
+            else if (_jumpMaxHeightStateful.IsChanged) {
+                _jumpSpeedStateful.Reset(Mathf.Sqrt(2f * Mathf.Abs(gravity.y) * _jumpMaxHeightStateful.Value));
+                _jumpSpeed = _jumpSpeedStateful.Value;
             }
 
-            airJump.OnUpdate();
-            if (isGrounded) airJump.Reset();
-            if (jumpBufferTime.Value > 0f) jumpBufferTime.Value -= dt;
-            if (coyoteTime.Value > 0f) coyoteTime.Value -= dt;
+            //airJumpTimer.OnUpdate();
+            if (isGrounded) airJumpTimer.Reset(_maxAirJumpCount);
+            _jumpBufferTimer.OnSubtract(dt);
+            _coyoteTimer.OnSubtract(dt);
         }
     }
 
@@ -194,7 +213,7 @@ namespace KinematicCharacterSettings
     public static class KinematicCharacterSettingExtensions
     {
         public enum EDimension {TwoDimension, ThreeDimension}
-        public enum ESpeedControlMode { Constant, Linear, Exponential }
+        public enum ESpeedControlMode { Constant, Linear, Exponential, CustomCurve}
         public enum EGravityMode {Single, Multiple}
     }
 }

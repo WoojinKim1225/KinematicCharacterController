@@ -119,6 +119,7 @@ public class KinematicCharacterController : MonoBehaviour
 
         if (gameObject.TryGetComponent(out Rigidbody rb)) m_componentSettings.rigidbody = rb;
         else m_componentSettings.rigidbody = gameObject.AddComponent<Rigidbody>();
+        m_componentSettings.capsuleCollider = GetComponentInChildren<CapsuleCollider>();
 
         m_componentSettings.rigidbody.mass = 1f;
         m_componentSettings.rigidbody.detectCollisions = true;
@@ -156,7 +157,10 @@ public class KinematicCharacterController : MonoBehaviour
 
         UpdateGravity(Time.fixedDeltaTime);
 
-        if (_isGrounded.Value) m_movementSettings.airJump.Value = m_movementSettings.airJump.InitialValue;
+       // if (_isGrounded.Value) {
+        //    //m_movementSettings.airJump.Value = m_movementSettings.airJump.InitialValue;
+        //    m_movementSettings.ResetAirJumpStateful(m_movementSettings.AirJump);
+        //}
 
         m_componentSettings.capsuleCollider.transform.up = _playerUp.normalized;
 
@@ -228,31 +232,34 @@ public class KinematicCharacterController : MonoBehaviour
 
     private void CalculateObjectSpaceVariables(float dt)
     {
-        if (_isGrounded.Value && (m_jumpVelocity.IS.Value > 0 || m_movementSettings.jumpBufferTime.Value > 0))
+        if (_isGrounded.Value && (m_jumpVelocity.IS.Value > 0 || m_movementSettings.GetJumpBufferTimer() > 0))
         {
-            m_jumpVelocity.OS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection);
+            m_jumpVelocity.OS = m_movementSettings.GetJumpSpeedStateful() * (-gravityDirection);
         }
         else m_jumpVelocity.OS = Vector3.zero;
         m_jumpVelocity.OS += _gravityStateful.Value * dt * 0.5f;
 
-        if (!_isGrounded.Value && m_jumpVelocity.IS.Value > 0 && m_jumpVelocity.IS.BeforeValue == 0)
-            m_movementSettings.jumpBufferTime.Reset();
+        if (
+            !_isGrounded.Value && m_jumpVelocity.IS.Value > 0 
+            && m_jumpVelocity.IS.BeforeValue == 0
+            && m_movementSettings.GetAirJumpTimer() <= 0)
+            m_movementSettings.ResetJumpBufferTimer(m_movementSettings.JumpBufferTimeInputValue);
 
         m_playerHeight.OS = m_playerHeight.IS > 0 ? m_characterSizeSettings.crouchHeight : m_characterSizeSettings.idleHeight;
 
         float moveSpeedMultiplier = m_playerHeight.IS > 0f ? m_movementSettings._crouchSpeedMultiplier : (m_sprintInput.IS > 0 ? m_movementSettings._sprintSpeedMultiplier : 1f);
         Vector3 _moveVelocityTargetOS = new Vector3(m_moveVelocity.IS.x, 0, m_moveVelocity.IS.y) * m_movementSettings.moveSpeed * moveSpeedMultiplier;
 
-        switch (m_movementSettings._speedControlMode)
+        switch (m_movementSettings.SpeedControlMode)
         {
             case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
                 m_moveVelocity.OS = _moveVelocityTargetOS;
                 break;
             case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
-                if ((m_moveVelocity.OS - _moveVelocityTargetOS).magnitude < dt * m_movementSettings._moveAcceleration) m_moveVelocity.OS = _moveVelocityTargetOS;
+                if ((m_moveVelocity.OS - _moveVelocityTargetOS).magnitude < dt * m_movementSettings.MoveAcceleration) m_moveVelocity.OS = _moveVelocityTargetOS;
                 else
                 {
-                    m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS).normalized * dt * m_movementSettings._moveAcceleration;
+                    m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS).normalized * dt * m_movementSettings.MoveAcceleration;
                 }
                 break;
             case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
@@ -261,6 +268,9 @@ public class KinematicCharacterController : MonoBehaviour
                 {
                     m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS) * dt * m_movementSettings._moveDamp;
                 }
+                break;
+            case KinematicCharacterSettingExtensions.ESpeedControlMode.CustomCurve:
+                m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS);
                 break;
             default:
                 m_moveVelocity.OS = _moveVelocityTargetOS;
@@ -278,25 +288,24 @@ public class KinematicCharacterController : MonoBehaviour
         if (!_isGrounded.Value)
         {
             _groundNormal = -gravityDirection;
-            if (_isJumpStarted && m_movementSettings.airJump.Value-- > 0)
+            if (m_movementSettings.GetCoyoteTimer() > 0 && _isJumpStarted)
             {
-                Debug.Log("asdfasdfasd");
-                m_jumpVelocity.WS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
+                m_movementSettings.SetCoyoteTimerValue2End();
+                m_jumpVelocity.WS = m_movementSettings.GetJumpSpeedStateful() * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
             }
-            else if (m_movementSettings.coyoteTime.Value > 0 && _isJumpStarted)
+            else if (_isJumpStarted && m_movementSettings.GetAirJumpTimer() > 0)
             {
-                Debug.Log("asdfasdfasdaaaaaaaa");
-                m_movementSettings.coyoteTime.Value = 0;
-                m_jumpVelocity.WS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
+                m_movementSettings.UpdateAirJumpTimer(1);
+                m_jumpVelocity.WS = m_movementSettings.GetJumpSpeedStateful() * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
             }
             else
             {
                 m_jumpVelocity.WS += _gravityStateful.Value * dt;
             }
         }
-        else if (m_movementSettings.jumpBufferTime.Value > 0)
+        else if (m_movementSettings.GetJumpBufferTimer() > 0)
         {
-            m_jumpVelocity.WS = m_movementSettings.jumpSpeedStateful.Value * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
+            m_jumpVelocity.WS = m_movementSettings.GetJumpSpeedStateful() * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
 
         }
         else m_jumpVelocity.WS = m_jumpVelocity.OS;
@@ -493,9 +502,11 @@ public class KinematicCharacterController : MonoBehaviour
             if (StepDown(characterLowestPosition, vel, out Vector3 additionalDownStep)) {
                 _isDownStep = true;
                 return CollideAndSlide(additionalDownStep, pos, depth + 1, true, velInit);
+            } else {
+                m_movementSettings.ResetCoyoteTimerValue(m_movementSettings.CoyoteTimeInputValue);
+
             }
         }
-        m_movementSettings.coyoteTime.Value = 0;
         return vel;
     }
 
@@ -578,7 +589,7 @@ public class KinematicCharacterController : MonoBehaviour
 
     private bool StepDown(Vector3 characterLowestPosition, Vector3 vel, out Vector3 additionalDownStep)
     {
-        if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.jumpBufferTime.Value <= 0)
+        if (m_stepAndSlopeHandleSettings._isDownStepEnabled && m_movementSettings.GetJumpBufferTimer() <= 0)
         {
             Ray r = new Ray(characterLowestPosition + vel, gravityDirection);
             bool b = Physics.Raycast(r, out RaycastHit h, m_stepAndSlopeHandleSettings._maxStepDownHeight, m_physicsSettings._whatIsGround, queryTrigger);

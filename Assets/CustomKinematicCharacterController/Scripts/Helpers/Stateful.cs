@@ -91,6 +91,57 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
     }
 
     [System.Serializable]
+    public struct IntStateful
+    {
+        [SerializeField] private int _value;
+        private bool _isChanged;
+        private int _beforeValue;
+        [SerializeField] private int _initialValue;
+
+        public int Value { get => _value; set => _value = value; }
+
+        public bool IsChanged => _isChanged;
+        public int BeforeValue => _beforeValue;
+
+        public int InitialValue { get => _initialValue; set => _initialValue = value; }
+
+        public IntStateful(int v)
+        {
+            _value = v;
+            _beforeValue = v;
+            _initialValue = v;
+            _isChanged = false;
+        }
+
+        public void OnUpdate(int v)
+        {
+            _beforeValue = _value;
+            _value = v;
+            _isChanged = _beforeValue != _value;
+        }
+
+        public void OnUpdate()
+        {
+            _isChanged = _beforeValue != _value;
+            _beforeValue = _value;
+        }
+
+        public void Reset()
+        {
+            _beforeValue = _initialValue;
+            _value = _initialValue;
+            _isChanged = false;
+        }
+
+        public void Reset(int v)
+        {
+            _beforeValue = v;
+            _value = v;
+            _isChanged = false;
+        }
+    }
+
+    [System.Serializable]
     public struct FloatStateful
     {
         [SerializeField] private float _value;
@@ -328,4 +379,41 @@ namespace StatefulVariables // Assuming your ReferenceManager class is in this n
         }
     }
 
+    [System.Serializable]
+    public struct Timer
+    {
+        [SerializeField] private float _value;
+        private float _endValue;
+        [SerializeField] private float _initialValue;
+
+        public float Value { get => _value; set => _value = value; }
+
+        public float EndValue => _endValue;
+
+        public float InitialValue { get => _initialValue; set => _initialValue = value; }
+
+        public void Init(float v, float end)
+        {
+            _value = end;
+            _endValue = end;
+            _initialValue = v;
+        }
+
+        public void OnSubtract(float subtract)
+        {
+            _value -= subtract;
+            if (_value < _endValue) {
+                _value = _endValue;
+            }
+        }
+
+        public void OnUpdate(float initialValue) {
+            _initialValue = initialValue;
+        }
+
+        public void Reset(float initialValue)
+        {
+            _value = _initialValue = initialValue;
+        }
+    }
 }
