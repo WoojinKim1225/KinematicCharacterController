@@ -157,11 +157,6 @@ public class KinematicCharacterController : MonoBehaviour
 
         UpdateGravity(Time.fixedDeltaTime);
 
-       // if (_isGrounded.Value) {
-        //    //m_movementSettings.airJump.Value = m_movementSettings.airJump.InitialValue;
-        //    m_movementSettings.ResetAirJumpStateful(m_movementSettings.AirJump);
-        //}
-
         m_componentSettings.capsuleCollider.transform.up = _playerUp.normalized;
 
         CalculateObjectSpaceVariables(Time.fixedDeltaTime);
@@ -270,7 +265,7 @@ public class KinematicCharacterController : MonoBehaviour
                 }
                 break;
             case KinematicCharacterSettingExtensions.ESpeedControlMode.CustomCurve:
-                m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS);
+                m_moveVelocity.OS += m_movementSettings._moveAnimationCurve.Evaluate((_moveVelocityTargetOS - m_moveVelocity.OS).magnitude/ m_movementSettings.moveSpeed / moveSpeedMultiplier) * (_moveVelocityTargetOS - m_moveVelocity.OS).normalized;
                 break;
             default:
                 m_moveVelocity.OS = _moveVelocityTargetOS;
