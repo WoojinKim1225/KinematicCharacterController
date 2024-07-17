@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.EditorTools;
 using System.Collections;
 
-/*
+
 [CustomEditor(typeof(KinematicCharacterController))]
 [CanEditMultipleObjects]
 public class KinematicCharacterControllerEditor : Editor
@@ -35,9 +35,7 @@ public class KinematicCharacterControllerEditor : Editor
 
         EditorGUILayout.Space(height + 100f);
 
-        selectedTab = GUILayout.Toolbar(selectedTab, tabTitles);
-
-        EditorGUILayout.ObjectField()
+        // selectedTab = GUILayout.Toolbar(selectedTab, tabTitles);
 
         base.OnInspectorGUI();
     }
@@ -47,7 +45,7 @@ public class KinematicCharacterControllerEditor : Editor
         KinematicCharacterController controller = (KinematicCharacterController)target;
         float magnify = 50f;
 
-        int h = (int)(Mathf.Max(controller.movementSettings.jumpMaxHeight.Value, controller.CharacterSizeSettings.idleHeight, 2f) * magnify);
+        int h = (int)(Mathf.Max(controller.movementSettings.GetJumpMaxHeightStateful(), controller.CharacterSizeSettings.idleHeight, 2f) * magnify);
 
         // Calculate the position and size of the capsule
         Vector3 center = new Vector3(200f, h + 50f, 0f);
@@ -68,8 +66,8 @@ public class KinematicCharacterControllerEditor : Editor
         Handles.DrawLine(center + Vector3.right * 3f * magnify, center + (Vector3.right * 3f + Vector3.up * controller.DownStepHeight) * magnify);
 
         Handles.DrawLine(center + Vector3.right * 4f * magnify, center + Vector3.right * 4f * magnify + (Vector3.right * Mathf.Cos(controller.MaxSlopeAngle * Mathf.Deg2Rad) - Vector3.up * Mathf.Sin(controller.MaxSlopeAngle * Mathf.Deg2Rad)) * 2f * magnify);
-        Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.movementSettings.jumpMaxHeight.Value) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.movementSettings.jumpMaxHeight.Value) * magnify, 1f);
-        DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.movementSettings.jumpMaxHeight.Value) * magnify);
+        Handles.DrawDottedLine(center + (Vector3.left * 2f + Vector3.down * controller.movementSettings.GetJumpMaxHeightStateful()) * magnify, center + (Vector3.right * 1f + Vector3.down * controller.movementSettings.GetJumpMaxHeightStateful()) * magnify, 1f);
+        DrawArrow(center + Vector3.left * magnify, center + (Vector3.left + Vector3.down * controller.movementSettings.GetJumpMaxHeightStateful()) * magnify);
 
         DrawArrow(center + Vector3.up * 10f + Vector3.left * magnify * controller.movementSettings.moveSpeed * Time.fixedDeltaTime * 10f, center + Vector3.up * 10f + Vector3.right * magnify * controller.movementSettings.moveSpeed * Time.fixedDeltaTime * 10f, false, true);
 
@@ -100,4 +98,3 @@ public class KinematicCharacterControllerEditor : Editor
     }
     
 }
-*/

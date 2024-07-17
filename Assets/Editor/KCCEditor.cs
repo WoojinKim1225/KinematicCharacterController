@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
+/*
 [CustomEditor(typeof(KinematicCharacterController))]
 public class KCCEditor : Editor
 {
@@ -199,3 +200,4 @@ public class KCCEditor : Editor
         if (isRightEnable) Handles.DrawLine(to, to + Quaternion.Euler(0, 0, -45f) * (from - to).normalized * 10f);
     }
 }
+*/

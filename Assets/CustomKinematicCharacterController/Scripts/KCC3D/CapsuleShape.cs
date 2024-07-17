@@ -10,6 +10,7 @@ public class CapsuleShape : MonoBehaviour
     public new CapsuleCollider collider;
 
     private float _height, _radius;
+    
 
     void Awake()
     {
@@ -36,9 +37,9 @@ public class CapsuleShape : MonoBehaviour
 
         }
         if (!Application.isPlaying || kcc.CharacterSizeSettings.height.IsChanged || kcc.CharacterSizeSettings.capsuleRadius.IsChanged) {
-            Bone.localScale = _radius * 2f * Vector3.one;
+            Bone.localScale = _radius * 2f * Vector3.one * 100f;
             Bone.localPosition = _radius * Vector3.up - Vector3.up;
-            Bone001.localScale = _radius * 2f * Vector3.one;
+            Bone001.localScale = _radius * 2f * Vector3.one * 100f;
             Bone001.localPosition = (_height - _radius) * Vector3.up - Vector3.up;
         }
     }
