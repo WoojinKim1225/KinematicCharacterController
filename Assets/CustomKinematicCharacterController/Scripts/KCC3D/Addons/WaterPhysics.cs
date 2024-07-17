@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using KinematicCharacterSettings;
+using KCCSettings;
+using KCC;
 
 public class WaterPhysics : MonoBehaviour
 {

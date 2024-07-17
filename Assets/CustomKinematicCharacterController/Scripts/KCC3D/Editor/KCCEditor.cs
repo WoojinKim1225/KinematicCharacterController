@@ -2,11 +2,11 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using System.Collections;
-
+using KCC;
 
 [CustomEditor(typeof(KinematicCharacterController))]
 [CanEditMultipleObjects]
-public class KinematicCharacterControllerEditor : Editor
+public class KCCEditor : Editor
 {
     private int selectedTab = 0;
     private string[] tabTitles = { "Tab 1", "Tab 2", "Tab 3" };

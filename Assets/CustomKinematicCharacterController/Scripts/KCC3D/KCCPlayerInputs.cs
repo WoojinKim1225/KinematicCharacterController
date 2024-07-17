@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
 using StatefulVariables;
-using System.Collections.Generic;
+using KCC;
 
 public class InputManager : MonoBehaviour
 {

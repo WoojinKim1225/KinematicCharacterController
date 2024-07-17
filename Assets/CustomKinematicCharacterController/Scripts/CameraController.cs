@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ReferenceManager;
+using KCC;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour

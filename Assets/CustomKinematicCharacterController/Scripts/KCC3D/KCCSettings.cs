@@ -3,7 +3,7 @@ using StatefulVariables;
 using System.Xml;
 
 
-namespace KinematicCharacterSettings
+namespace KCCSettings
 {
     [System.Serializable]
     public struct GravitySet {
