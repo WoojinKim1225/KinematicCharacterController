@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.EditorTools;
 using System.Collections;
 using KCC;
-
+/*
 [CustomEditor(typeof(KinematicCharacterController))]
 [CanEditMultipleObjects]
 public class KCCEditor : Editor
@@ -98,3 +98,4 @@ public class KCCEditor : Editor
     }
     
 }
+*/

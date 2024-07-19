@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
+using KCC;
 /*
 [CustomEditor(typeof(KinematicCharacterController))]
 public class KCCEditor : Editor

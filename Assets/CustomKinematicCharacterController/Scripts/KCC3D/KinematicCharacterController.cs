@@ -1,8 +1,8 @@
 using UnityEngine;
 using StatefulVariables;
 using KCCSettings;
-using Unity.VisualScripting;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace KCC
 {
@@ -50,9 +50,9 @@ namespace KCC
         public Vector3 Right => _right;
 
         private Coordinate<Vector2, Vector3, Vector3, Vector3> m_moveVelocity;
-        private Coordinate<Float, Vector3, Null, Vector3> m_jumpVelocity;
-        private Coordinate<float, float, Null, float> m_playerHeight;
-        private Coordinate<float, Null, Null, Null> m_sprintInput;
+        private Coordinate<Float, Vector3, nuint, Vector3> m_jumpVelocity;
+        private Coordinate<float, float, nuint, float> m_playerHeight;
+        private Coordinate<float, nuint, nuint, nuint> m_sprintInput;
 
 
         private bool _isJumpStarted => m_jumpVelocity.IS.Value != 0 && m_jumpVelocity.IS.BeforeValue == 0;
@@ -172,12 +172,24 @@ namespace KCC
 
             HandleCollisionsAndMovement(Time.fixedDeltaTime);
 
+            int i = normals.Select(v => Vector3.Dot(Velocity, v)).Count(f => f <= 0);
+            Debug.Log(i);
+
             foreach (Vector3 normal in normals)
             {
-                if (Vector3.Dot(m_externalMovementSettings._velocity, normal) < 0)
+                Debug.DrawRay(transform.position, normal, Color.white, 1);
+                if (Vector3.Dot(Velocity, normal) < 0)
                 {
-                    m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, normal) + normal * m_physicsSettings.skinWidth;
+                    //m_externalMovementSettings._velocity = Vector3.zero;
+                    //m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, normal) - Vector3.Project(m_externalMovementSettings._velocity, normal) * m_physicsSettings.skinWidth;
                 }
+            }
+
+            if (i >= 2) {
+                m_externalMovementSettings._velocity = Vector3.zero;
+            } else if (i == 1) {
+                Vector3 v = normals.Where(v => Vector3.Dot(Velocity, v) <= 0).FirstOrDefault();
+                m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, v);
             }
 
             _isGroundedBeforeFrame = _isGrounded.Value;
