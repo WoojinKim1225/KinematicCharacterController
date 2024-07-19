@@ -196,7 +196,7 @@ namespace KCCSettings
         public Vector3 _groundMove;
         public Vector3 _acceleration;
         public Vector3 _velocity;
-        //public Vector3 _velocityBefore;
+        public Vector3 _velocityBefore;
         public Vector3 horizontalVelocity, verticalVelocity;
         public Vector3 _position;
         public bool _isPositionSet;

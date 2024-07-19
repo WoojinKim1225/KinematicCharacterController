@@ -10,6 +10,8 @@ public class WaterPhysics : MonoBehaviour
     public Vector3 v;
     public float f;
     public float waterHeightWS;
+    private Vector3 beforeVel;
+    public Vector3 va;
 
     public float externalContactDrag, externalAirDrag;
     
@@ -31,7 +33,11 @@ public class WaterPhysics : MonoBehaviour
         if (kcc != null) {
             v = Vector3.Lerp(Vector3.zero, Vector3.up * f, (waterHeightWS - kcc.transform.position.y) / kcc.CharacterSizeSettings.height.Value);
             
-            kcc.AddForce(v - kcc.Velocity.y * Vector3.up * 0.1f);
+            kcc.AddForce(v - kcc.VerticalVelocity * 10f + beforeVel * va.x + kcc.HorizontalVelocity * va.y);
+            //kcc.AddForce(v - kcc.VerticalVelocity * 1f + va);
+            Debug.DrawRay(kcc.transform.position, (beforeVel - kcc.HorizontalVelocity) * 30f, Color.white);
+            //kcc.AddForce(-kcc.HorizontalVelocity);
+            beforeVel = kcc.HorizontalVelocity;
         }
     }
 

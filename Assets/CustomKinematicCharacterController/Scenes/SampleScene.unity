@@ -1718,6 +1718,7 @@ MonoBehaviour:
   v: {x: 0, y: 0, z: 0}
   f: 40
   waterHeightWS: -1
+  va: {x: 0, y: 0, z: 0}
   externalContactDrag: 0
   externalAirDrag: 0
 --- !u!65 &1428172811
