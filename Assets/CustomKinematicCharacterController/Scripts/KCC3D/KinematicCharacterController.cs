@@ -156,39 +156,30 @@ namespace KCC
                 return;
             }
 
-            UpdateGravity(Time.fixedDeltaTime);
+            UpdateGravity(dt);
 
             m_componentSettings.capsuleCollider.transform.up = _playerUp.normalized;
 
-            CalculateObjectSpaceVariables(Time.fixedDeltaTime);
+            CalculateObjectSpaceVariables(dt);
 
             CalculateTangentSpaceVariables();
 
-            CalculateWorldSpaceVariables(Time.fixedDeltaTime);
+            CalculateWorldSpaceVariables(dt);
+
+            //CalculateExternalMovementVariables(dt);
 
             UpdateProperties();
 
             beforeWallNormal = Vector3.zero;
 
-            HandleCollisionsAndMovement(Time.fixedDeltaTime);
+            HandleCollisionsAndMovement(dt);
 
-            int i = normals.Select(v => Vector3.Dot(Velocity, v)).Count(f => f <= 0);
-            Debug.Log(i);
+            IEnumerable<Vector3> ie = normals.Where(v => Vector3.Dot(Velocity, v) < 0);
 
-            foreach (Vector3 normal in normals)
-            {
-                Debug.DrawRay(transform.position, normal, Color.white, 1);
-                if (Vector3.Dot(Velocity, normal) < 0)
-                {
-                    //m_externalMovementSettings._velocity = Vector3.zero;
-                    //m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, normal) - Vector3.Project(m_externalMovementSettings._velocity, normal) * m_physicsSettings.skinWidth;
-                }
-            }
-
-            if (i >= 2) {
+            if (ie.Count() >= 2) {
                 m_externalMovementSettings._velocity = Vector3.zero;
-            } else if (i == 1) {
-                Vector3 v = normals.Where(v => Vector3.Dot(Velocity, v) <= 0).FirstOrDefault();
+            } else if (ie.Count() == 1) {
+                Vector3 v = ie.FirstOrDefault();
                 m_externalMovementSettings._velocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, v);
             }
 
@@ -258,26 +249,26 @@ namespace KCC
             float moveSpeedMultiplier = m_playerHeight.IS > 0f ? m_movementSettings._crouchSpeedMultiplier : (m_sprintInput.IS > 0 ? m_movementSettings._sprintSpeedMultiplier : 1f);
             Vector3 _moveVelocityTargetOS = new Vector3(m_moveVelocity.IS.x, 0, m_moveVelocity.IS.y) * m_movementSettings.moveSpeed * moveSpeedMultiplier;
 
-            switch (m_movementSettings.SpeedControlMode)
+            switch (m_movementSettings.MovementControlMode)
             {
-                case KinematicCharacterSettingExtensions.ESpeedControlMode.Constant:
+                case KinematicCharacterSettingExtensions.ESpeedLerp.Constant:
                     m_moveVelocity.OS = _moveVelocityTargetOS;
                     break;
-                case KinematicCharacterSettingExtensions.ESpeedControlMode.Linear:
+                case KinematicCharacterSettingExtensions.ESpeedLerp.Linear:
                     if ((m_moveVelocity.OS - _moveVelocityTargetOS).magnitude < dt * m_movementSettings.MoveAcceleration) m_moveVelocity.OS = _moveVelocityTargetOS;
                     else
                     {
                         m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS).normalized * dt * m_movementSettings.MoveAcceleration;
                     }
                     break;
-                case KinematicCharacterSettingExtensions.ESpeedControlMode.Exponential:
+                case KinematicCharacterSettingExtensions.ESpeedLerp.Exponential:
                     if ((m_moveVelocity.OS - _moveVelocityTargetOS).magnitude < Mathf.Epsilon) m_moveVelocity.OS = _moveVelocityTargetOS;
                     else
                     {
                         m_moveVelocity.OS += (_moveVelocityTargetOS - m_moveVelocity.OS) * dt * m_movementSettings._moveDamp;
                     }
                     break;
-                case KinematicCharacterSettingExtensions.ESpeedControlMode.CustomCurve:
+                case KinematicCharacterSettingExtensions.ESpeedLerp.CustomCurve:
                     m_moveVelocity.OS += m_movementSettings._moveAnimationCurve.Evaluate((_moveVelocityTargetOS - m_moveVelocity.OS).magnitude/ m_movementSettings.moveSpeed / moveSpeedMultiplier) * (_moveVelocityTargetOS - m_moveVelocity.OS).normalized;
                     break;
                 default:
@@ -318,12 +309,32 @@ namespace KCC
             }
             else m_jumpVelocity.WS = m_jumpVelocity.OS;
 
-            m_moveVelocity.WS = (m_moveVelocity.TS - Vector3.Dot(_groundNormal, m_moveVelocity.TS) / Vector3.Dot(_groundNormal, -gravityDirection) * (-gravityDirection)).normalized * m_moveVelocity.TS.magnitude;
-
+            //m_moveVelocity.WS 
+            Vector3 moveVelocityTargetWS= (m_moveVelocity.TS - Vector3.Dot(_groundNormal, m_moveVelocity.TS) / Vector3.Dot(_groundNormal, -gravityDirection) * (-gravityDirection)).normalized * m_moveVelocity.TS.magnitude;
+            Vector4 moveVelocityTargetWSRadial = moveVelocityTargetWS.normalized;
+            moveVelocityTargetWSRadial.w = moveVelocityTargetWS.magnitude;
+            switch (m_movementSettings.SpeedControlMode) {
+                case KinematicCharacterSettingExtensions.ESpeedLerp.Constant:
+                    m_moveVelocity.WS = moveVelocityTargetWS;
+                    break;
+                case KinematicCharacterSettingExtensions.ESpeedLerp.Linear:
+                    if ((m_moveVelocity.WS - moveVelocityTargetWS).magnitude < dt * m_movementSettings.MoveAcceleration) m_moveVelocity.WS = moveVelocityTargetWS;
+                    else
+                    {
+                        m_moveVelocity.WS += (moveVelocityTargetWS - m_moveVelocity.WS).normalized * dt * m_movementSettings.MoveAcceleration;
+                    }
+                    break;
+                case KinematicCharacterSettingExtensions.ESpeedLerp.Exponential:
+                    if ((m_moveVelocity.WS - moveVelocityTargetWS).magnitude < Mathf.Epsilon) m_moveVelocity.WS = moveVelocityTargetWS;
+                    else
+                    {
+                        m_moveVelocity.WS += (moveVelocityTargetWS - m_moveVelocity.WS) * dt * m_movementSettings._moveDamp;
+                    }
+                    break;
+            }
             m_externalMovementSettings._acceleration = impulseGive + accelerationGive;
-
-
-            m_externalMovementSettings._velocityBefore = m_externalMovementSettings._velocity;
+            
+            //m_externalMovementSettings._velocityBefore = m_externalMovementSettings._velocity;
             m_externalMovementSettings._velocity += m_externalMovementSettings._acceleration * dt;
             float drag = _isGrounded.Value ? _externalDragStateful.Value.x : _externalDragStateful.Value.y;
             if (m_externalMovementSettings._velocity.magnitude < dt * drag)
@@ -347,13 +358,12 @@ namespace KCC
                 m_externalMovementSettings._velocity += (parentPos - parentPosBefore) / dt;
             }
 
-            m_jumpVelocity.WS -= Vector3.Project(m_externalMovementSettings._velocityBefore, gravityDirection);
-            m_jumpVelocity.WS += Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
+            //verticalVelocityExternal = -Vector3.Project(m_externalMovementSettings._velocityBefore, gravityDirection) + Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
+            m_externalMovementSettings.verticalVelocity = Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
+            m_externalMovementSettings.horizontalVelocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, gravityDirection);
 
-            m_moveVelocity.WS += Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, gravityDirection);
-
-            m_externalMovementSettings._velocityBefore.y -= m_externalMovementSettings._velocity.y;
-            m_externalMovementSettings._velocity.y = 0;
+            //m_externalMovementSettings._velocityBefore.y -= m_externalMovementSettings._velocity.y;
+            //m_externalMovementSettings._velocity.y = 0;
 
             m_playerHeight.WS = m_playerHeight.OS * transform.localScale.y;
         }
@@ -376,8 +386,9 @@ namespace KCC
 
             isKinematicHit.Value = false;
 
-            _horizontalDisplacement = CollideAndSlide(m_moveVelocity.WS * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
-            _verticalDisplacement = CollideAndSlide(m_jumpVelocity.WS * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
+            _horizontalDisplacement = CollideAndSlide((m_moveVelocity.WS + m_externalMovementSettings.horizontalVelocity) * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
+            _verticalDisplacement = CollideAndSlide((m_jumpVelocity.WS + m_externalMovementSettings.verticalVelocity) * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
+
 
             if (!isKinematicHit.Value) parent = null;
 

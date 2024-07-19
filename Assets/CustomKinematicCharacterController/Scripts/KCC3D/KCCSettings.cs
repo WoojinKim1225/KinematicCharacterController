@@ -75,8 +75,11 @@ namespace KCCSettings
         public void UpdateAirJumpTimer(float value) => airJumpTimer.OnSubtract(value);
 
         [Tooltip("Controls character speed mode.")]
-        [SerializeField] private KinematicCharacterSettingExtensions.ESpeedControlMode _speedControlMode = KinematicCharacterSettingExtensions.ESpeedControlMode.Constant;
-        public KinematicCharacterSettingExtensions.ESpeedControlMode SpeedControlMode => _speedControlMode;
+        [SerializeField] private KinematicCharacterSettingExtensions.ESpeedLerp _movementControlMode = KinematicCharacterSettingExtensions.ESpeedLerp.Constant;
+        public KinematicCharacterSettingExtensions.ESpeedLerp MovementControlMode => _movementControlMode;
+
+        [SerializeField] private KinematicCharacterSettingExtensions.ESpeedLerp _speedControlMode = KinematicCharacterSettingExtensions.ESpeedLerp.Constant;
+        public KinematicCharacterSettingExtensions.ESpeedLerp SpeedControlMode => _speedControlMode;
         
         [Tooltip("Acceleration in move speed when linear mode.")]
         [SerializeField] private float _moveAcceleration = 25f;
@@ -193,7 +196,8 @@ namespace KCCSettings
         public Vector3 _groundMove;
         public Vector3 _acceleration;
         public Vector3 _velocity;
-        public Vector3 _velocityBefore;
+        //public Vector3 _velocityBefore;
+        public Vector3 horizontalVelocity, verticalVelocity;
         public Vector3 _position;
         public bool _isPositionSet;
 
@@ -213,7 +217,7 @@ namespace KCCSettings
     public static class KinematicCharacterSettingExtensions
     {
         public enum EDimension {TwoDimension, ThreeDimension}
-        public enum ESpeedControlMode { Constant, Linear, Exponential, CustomCurve}
+        public enum ESpeedLerp { Constant, Linear, Exponential, CustomCurve}
         public enum EGravityMode {Single, Multiple}
     }
 }

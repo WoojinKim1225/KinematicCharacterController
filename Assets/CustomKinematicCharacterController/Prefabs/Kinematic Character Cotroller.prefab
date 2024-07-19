@@ -160,6 +160,7 @@ MonoBehaviour:
     _sprintSpeedMultiplier: 2
     _crouchSpeedMultiplier: 0.5
     _maxAirJumpCount: 1
+    _movementControlMode: 0
     _speedControlMode: 1
     _moveAcceleration: 40
     _moveDamp: 10
@@ -217,7 +218,8 @@ MonoBehaviour:
     _groundMove: {x: 0, y: 0, z: 0}
     _acceleration: {x: 0, y: 0, z: 0}
     _velocity: {x: 0, y: 0, z: 0}
-    _velocityBefore: {x: 0, y: 0, z: 0}
+    horizontalVelocity: {x: 0, y: 0, z: 0}
+    verticalVelocity: {x: 0, y: 0, z: 0}
     _position: {x: 0, y: 0, z: 0}
     _isPositionSet: 0
     _contactDrag: 8
