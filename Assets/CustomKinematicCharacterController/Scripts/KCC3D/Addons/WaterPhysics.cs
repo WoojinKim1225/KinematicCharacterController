@@ -10,7 +10,7 @@ public class WaterPhysics : MonoBehaviour
     public Vector3 v;
     public float f;
     public float waterHeightWS;
-    private Vector3 beforeVel;
+    private Vector3 beforeAccel, beforeVel;
     public Vector3 va;
 
     public float externalContactDrag, externalAirDrag;
@@ -29,14 +29,17 @@ public class WaterPhysics : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
+        Debug.Log(other.name);
         kcc = other.GetComponentInParent<KinematicCharacterController>();
         if (kcc != null) {
             v = Vector3.Lerp(Vector3.zero, Vector3.up * f, (waterHeightWS - kcc.transform.position.y) / kcc.CharacterSizeSettings.height.Value);
-            
-            kcc.AddForce(v - kcc.VerticalVelocity * 10f + beforeVel * va.x + kcc.HorizontalVelocity * va.y);
+            Vector3 accel = (kcc.HorizontalVelocity - beforeVel) / Time.fixedDeltaTime;
+            kcc.AddForce(v - kcc.Velocity);
+            //Debug.Log("asdf");
             //kcc.AddForce(v - kcc.VerticalVelocity * 1f + va);
-            Debug.DrawRay(kcc.transform.position, (beforeVel - kcc.HorizontalVelocity) * 30f, Color.white);
+            //Debug.DrawRay(kcc.transform.position, accel * va.x + kcc.HorizontalVelocity * va.y, Color.white);
             //kcc.AddForce(-kcc.HorizontalVelocity);
+            beforeAccel = accel;
             beforeVel = kcc.HorizontalVelocity;
         }
     }

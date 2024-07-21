@@ -297,6 +297,11 @@ namespace KCC
 
         private void CalculateWorldSpaceVariables(float dt)
         {
+            m_externalMovementSettings._acceleration = impulseGive + accelerationGive;
+            float drag = _isGrounded.Value ? _externalDragStateful.Value.x : _externalDragStateful.Value.y;
+            m_externalMovementSettings._velocityBefore = m_externalMovementSettings._velocity;
+            
+            
             if (!_isGrounded.Value)
             {
                 _groundNormal = -gravityDirection;
@@ -312,20 +317,26 @@ namespace KCC
                 }
                 else
                 {
-                    m_jumpVelocity.WS += _gravityStateful.Value * dt;
+                    m_externalMovementSettings._velocity += m_externalMovementSettings._acceleration * dt;
+                    if (m_externalMovementSettings._velocity.magnitude < dt * drag)
+                        m_externalMovementSettings._velocity = Vector3.zero;
+
+                    m_externalMovementSettings._velocity *= 1 - drag / componentSettings.rigidbody.mass * dt;
+                    m_jumpVelocity.WS += _gravityStateful.Value * dt + m_externalMovementSettings._velocity - m_externalMovementSettings._velocityBefore;
                 }
             }
             else if (m_movementSettings.GetJumpBufferTimer() > 0)
             {
                 m_jumpVelocity.WS = m_movementSettings.GetJumpSpeedStateful() * (-gravityDirection) + _gravityStateful.Value * dt * 0.5f;
-
             }
-            else m_jumpVelocity.WS = m_jumpVelocity.OS;
+            else {
+                m_jumpVelocity.WS = m_jumpVelocity.OS;// + m_externalMovementSettings._velocity;
+            }
 
-            //m_moveVelocity.WS 
             Vector3 moveVelocityTargetWS= (m_moveVelocity.TS - Vector3.Dot(_groundNormal, m_moveVelocity.TS) / Vector3.Dot(_groundNormal, -gravityDirection) * (-gravityDirection)).normalized * m_moveVelocity.TS.magnitude;
             Vector4 moveVelocityTargetWSRadial = moveVelocityTargetWS.normalized;
             moveVelocityTargetWSRadial.w = moveVelocityTargetWS.magnitude;
+
             switch (m_movementSettings.SpeedControlMode) {
                 case KinematicCharacterSettingExtensions.ESpeedLerp.Constant:
                     m_moveVelocity.WS = moveVelocityTargetWS;
@@ -345,40 +356,44 @@ namespace KCC
                     }
                     break;
             }
-            m_externalMovementSettings._acceleration = impulseGive + accelerationGive;
+
+
             
-            m_externalMovementSettings._velocityBefore = m_externalMovementSettings._velocity;
-            m_externalMovementSettings._velocity += m_externalMovementSettings._acceleration * dt;
-            float drag = _isGrounded.Value ? _externalDragStateful.Value.x : _externalDragStateful.Value.y;
-            if (m_externalMovementSettings._velocity.magnitude < dt * drag)
-                m_externalMovementSettings._velocity = Vector3.zero;
+            //if (!_isGrounded.Value && m_externalMovementSettings._acceleration != Vector3.zero) m_externalMovementSettings._acceleration += _gravityStateful.Value; 
+            
+            //m_externalMovementSettings._velocityBefore = m_externalMovementSettings._velocity;
+            //m_externalMovementSettings._velocity += m_externalMovementSettings._acceleration * dt;
+            //float drag = _isGrounded.Value ? _externalDragStateful.Value.x : _externalDragStateful.Value.y;
+            //if (m_externalMovementSettings._velocity.magnitude < dt * drag)
+            //    m_externalMovementSettings._velocity = Vector3.zero;
 
-            m_externalMovementSettings._velocity *= 1 - drag / componentSettings.rigidbody.mass * dt;
+            //m_externalMovementSettings._velocity *= 1 - drag / componentSettings.rigidbody.mass * dt;
 
-            if (isKinematicHit.Value && !isKinematicHit.BeforeValue)
-            {
+            if (isKinematicHit.Value && !isKinematicHit.BeforeValue){
                 parentPos = parent.transform.position;
                 parentPosBefore = parent.transform.position;
             }
-            else if (isKinematicHit.Value && isKinematicHit.BeforeValue)
-            {
+            else if (isKinematicHit.Value && isKinematicHit.BeforeValue){
                 parentPosBefore = parentPos;
                 parentPos = parent.transform.position;
                 m_moveVelocity.WS += (parentPos - parentPosBefore) / dt;
             }
-            else if (!isKinematicHit.Value && isKinematicHit.BeforeValue)
-            {
+            else if (!isKinematicHit.Value && isKinematicHit.BeforeValue){
                 m_externalMovementSettings._velocity += (parentPos - parentPosBefore) / dt;
             }
 
-           jumpVelocityAdded = -Vector3.Project(m_externalMovementSettings._velocityBefore, gravityDirection) + Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
-           moveVelocityAdded = -Vector3.ProjectOnPlane(m_externalMovementSettings._velocityBefore, gravityDirection) + Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, gravityDirection);
-            m_externalMovementSettings.verticalVelocity = Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
-            m_externalMovementSettings.horizontalVelocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, gravityDirection);
+            //m_moveVelocity.WS 
+            //m_jumpVelocity.WS += m_externalMovementSettings._velocity - m_externalMovementSettings._velocityBefore;
 
-            m_externalMovementSettings._velocityBefore.y -= m_externalMovementSettings._velocity.y;
-            m_externalMovementSettings._velocity.y = 0;
+            //jumpVelocityAdded = -Vector3.Project(m_externalMovementSettings._velocityBefore, gravityDirection) + Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
+            //moveVelocityAdded = -Vector3.ProjectOnPlane(m_externalMovementSettings._velocityBefore, gravityDirection) + Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, gravityDirection);
+            //m_externalMovementSettings.verticalVelocity = Vector3.Project(m_externalMovementSettings._velocity, gravityDirection);
+            //m_externalMovementSettings.horizontalVelocity = Vector3.ProjectOnPlane(m_externalMovementSettings._velocity, gravityDirection);
 
+            //m_externalMovementSettings._velocityBefore.y -= m_externalMovementSettings._velocity.y;
+            //m_externalMovementSettings._velocity.y = 0;
+            //m_externalMovementSettings._velocityBefore -= m_externalMovementSettings._velocity;
+            //m_externalMovementSettings._velocity = Vector3.zero;
             m_playerHeight.WS = m_playerHeight.OS * transform.localScale.y;
         }
 
@@ -400,10 +415,13 @@ namespace KCC
 
             isKinematicHit.Value = false;
 
-            _horizontalDisplacement = CollideAndSlide((m_moveVelocity.WS + m_externalMovementSettings.horizontalVelocity) * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
-            _verticalDisplacement = CollideAndSlide((m_jumpVelocity.WS + m_externalMovementSettings.verticalVelocity) * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
-            m_jumpVelocity.WS += jumpVelocityAdded;
-            m_moveVelocity.WS += moveVelocityAdded;
+            //_horizontalDisplacement = CollideAndSlide((m_moveVelocity.WS + m_externalMovementSettings.horizontalVelocity) * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
+            //_verticalDisplacement = CollideAndSlide((m_jumpVelocity.WS + m_externalMovementSettings.verticalVelocity) * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
+            //m_jumpVelocity.WS += jumpVelocityAdded;
+            //m_moveVelocity.WS += moveVelocityAdded;
+
+            _horizontalDisplacement = CollideAndSlide(m_moveVelocity.WS * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f, 0, false);
+            _verticalDisplacement = CollideAndSlide(m_jumpVelocity.WS  * dt, m_componentSettings.rigidbody.transform.position - m_characterSizeSettings.height.Value * gravityDirection * 0.5f + _horizontalDisplacement, 0, true);
 
 
             if (!isKinematicHit.Value) parent = null;
